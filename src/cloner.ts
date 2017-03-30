@@ -33,7 +33,7 @@ module BABYLONX {
             this._camera.wheelPrecision = 8;
             this._camera.radius = 25;
             this._camera.alpha = 1.66;
-            this._camera.beta = 1.2;
+            this._camera.beta = 1.2; 
         }
         lights() {
             var lightpos = new BABYLON.Vector3(0, 10, 0);

@@ -2,7 +2,7 @@
 BABYLON Cloners
  
 <p>
-	I decided to use a working title "SCS" for "Simple Cloning System" and here are the core features and concepts :
+	Extension for <a href="http://www.babylonjs.com/"> BabylonJS framework </a>
 </p>
 
 <ul><li>

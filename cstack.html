@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Nested Cloners</title>
+    <!-- Babylon.js -->
+
+    <script src="lib/hand-1.3.7.js"></script>
+    <script src="lib/cannon.js"></script>
+    <script src="lib/Oimo.js"></script>
+    <script src="lib/babylon.2.5.max.js"></script>
+    <script src="lib/babylon.marbleProceduralTexture.js"></script>
+    <script src="lib/dat.gui.min.js"></script>
+
+    <script src="src/cloner.js"></script>
+    <link rel="stylesheet" type="text/css" href="../ecmas6/lib/bootstrap/css/bootstrap.min.css">
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px;
+            background-color: #333344;
+        }
+        #target { position: absolute; top: 0em; left: 0em; }
+        #btest { position: absolute; top: 6em; left: 15em; }
+        #btest2 { position: absolute; top: 8em; left: 15em; }
+        #sliderCount { position: absolute; top: 8em; left: 3em; }
+        #sliderGrowth { position: absolute; top: 10em; left: 3em; }
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+        }
+        .dg {
+            color: #00AA00;
+            text-shadow: none !important;
+        }
+        
+    </style>
+</head>
+<body bgcolor="#333344" oncontextmenu="return false; ">
+    <canvas id="renderCanvas"></canvas>
+     <script>
+        var gui = new dat.GUI({
+            height : 5 * 32 - 1
+        });
+            var lin_params= {
+            caption:"",
+            count: 4,
+            PX: 0,
+            PY: 1.1,
+            PZ: 0,
+            SX:1,
+            SY:1,
+            SZ:1,
+            RX:0,
+            RY:Math.PI/12,
+            RZ:0,
+            interpolmode: "step",
+            offset:0,
+            growth: .8,
+            
+        }
+         var rad_params= {
+             caption:"",
+            count: 8,
+            radius:2,
+            offset:0,
+            plane:"ZX",
+            startangle:0,
+            endangle:360,
+            align:true
+            
+        }
+       
+        function init_gui() {
+            var pcontroller={};
+            var scontroller={};
+            var rcontroller={};
+            gui.add(lin_params, 'caption').name("Clonertype: Linear");
+            gui.add(lin_params, 'count').min(0).max(20).step(1).onChange(function(value) {var ccc=cc.count; cc.count=0; lc.count=value; cc.count=ccc;});
+ 
+            gui.add(rad_params, 'caption').name("Clonertype: Radial");
+            gui.add(rad_params, 'count').min(0).max(10).step(1).onChange(function(value) {cc.count=value;});//var ccc=cc.count; cc.count=0; lc.count=value; cc.count=ccc;});
+            gui.add(rad_params, 'radius').min(0).max(20).step(1).onChange(function(value) {cc.radius=value;});
+            gui.add(rad_params, 'offset').min(-360).max(360).step(1).onChange(function(value) {cc.offset=value;});
+            gui.add(rad_params, 'startangle').min(0).max(360).step(.1).onChange(function(value) {cc.startangle=value;});
+            gui.add(rad_params, 'endangle').min(0).max(360).step(.1).onChange(function(value) {cc.endangle=value;});
+            
+      }
+        init_gui();
+
+        var demo=new BABYLONX.Demoscene();
+        demo.init();
+        //demo._scene.debugLayer.show();
+
+         var lin_opts= {
+            iModeStep:true,
+            count:lin_params.count,
+            P: {x:0,y:1.1,z:0},
+            R: {x:0,y:0,z:0},
+            growth:1,
+            useInstances:true
+        }
+         var rad_opts= {
+            count:rad_params.count,
+            radius:2,
+        }
+
+       var c=demo.createCube(1,BABYLON.Color3.FromHexString("#DAA520"));
+       var c2=demo.createCube(0.5,BABYLON.Color3.FromHexString("#5555FF"));
+       var co=demo.createCone(.5,BABYLON.Color3.FromHexString("#55FFDC"));
+       var lc0=new BABYLONX.RadialCloner([c,co,c2],demo.scene,rad_opts);
+       var lc=new BABYLONX.LinearCloner([lc0],demo.scene,lin_opts);
+       rad_opts.radius=10;
+       var cc=new BABYLONX.RadialCloner([lc],demo.scene,rad_opts);
+        demo.scene.registerBeforeRender(function () {
+
+        cc.root.rotation.y+=0.002;
+
+        });
+
+
+       
+</script>
+</body>
+
+
+
+</html>

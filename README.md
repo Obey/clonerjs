@@ -4,7 +4,7 @@ BABYLON Cloners
 <p>
 	Extension for <a href="http://www.babylonjs.com/"> BabylonJS framework </a>
 </p>
-
+Definitions:
 <ul><li>
 		Cloners: given one or several meshes, either clones or instances will distributed in a specific manner. If more than one mesh is provided, the meshes are distributed alternatively. Additionally, cloners can be nested, so it is possible to clone cloners. Each cloner can have several Effectors (in particular order) to influence the Scale/Position/Rotation parameter of a clone (or cloner). A sensitivity parameter controls this influence for a cloner. Following Objects are designated:
 	</li>

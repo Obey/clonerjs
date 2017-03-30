@@ -294,7 +294,15 @@ var BABYLONX;
                 let arange = this._endangle - this._startangle;
                 let step = arange / this._count;
                 this._clones[i].getChildren()[0].rotation.x = this._clones[i].getChildren()[0].rotation.y = this._clones[i].getChildren()[0].rotation.z = 0;
-                this._clones[i].getChildren()[0].rotation.y = this._align ? this._offset + this._startangle + i * step : 0;
+                if (this._plane.y === 0) {
+                    this._clones[i].getChildren()[0].rotation.y = this._align ? this._offset + this._startangle + i * step : 0;
+                }
+                else if (this._plane.x === 0) {
+                    this._clones[i].getChildren()[0].rotation.x = this._align ? -this._offset - this._startangle - i * step : 0;
+                }
+                else {
+                    this._clones[i].getChildren()[0].rotation.z = this._align ? -this._offset - this._startangle - i * step : 0;
+                }
                 let vRet = this.eRotate(this._clones[i].getChildren()[0].rotation);
                 this._clones[i].getChildren()[0].rotation = vRet;
             }
@@ -323,12 +331,14 @@ var BABYLONX;
                 else if (this._plane.x === 0) {
                     this._clones[i].position.y = Math.sin(this._offset + this._startangle + i * step) * this._radius;
                     this._clones[i].position.z = Math.cos(this._offset + this._startangle + i * step) * this._radius;
-                    this._clones[i].getChildren()[0].rotation.x = this._align ? -this._offset - this._startangle - i * step : 0;
+                    this._clones[i].position = this.ePosition(this._clones[i].position);
+                    //this._clones[i].getChildren()[0].rotation.x = this._align ? -this._offset - this._startangle - i * step : 0;
                 }
                 else {
                     this._clones[i].position.x = Math.sin(this._offset + this._startangle + i * step) * this._radius;
                     this._clones[i].position.y = Math.cos(this._offset + this._startangle + i * step) * this._radius;
-                    this._clones[i].getChildren()[0].rotation.z = this._align ? -this._offset - this._startangle - i * step : 0;
+                    this._clones[i].position = this.ePosition(this._clones[i].position);
+                    //this._clones[i].getChildren()[0].rotation.z = this._align ? -this._offset - this._startangle - i * step : 0;
                 }
             }
         }

@@ -1,5 +1,5 @@
 # clonerjs
-BABYLON Cloners
+BABYLON Simple Cloner System (BSCS)
  
 <p>
 	Extension for <a href="http://www.babylonjs.com/"> BabylonJS framework </a>

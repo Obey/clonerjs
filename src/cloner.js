@@ -146,6 +146,7 @@ var BABYLONX;
             this._rotation = new BABYLON.Vector3(0, 0, 0);
             this._scale = new BABYLON.Vector3(0, 0, 0);
             this._uniformScale = false;
+            this._clients = [];
             this._seed = this._s = seed;
             this._rfunction = function () {
                 this._s = Math.sin(this._s) * 10000;
@@ -177,6 +178,12 @@ var BABYLONX;
             var m1 = this._scale.multiplyByFloats((-.5 + a) * this._strength, (-.5 + b) * this._strength, (-.5 + b) * this._strength);
             //var m1=this._scale.multiplyByFloats(this._strength,this._strength,this._strength);
             return vec.add(m1);
+        }
+        addClient(c) {
+            this._clients.push(c);
+        }
+        updateClients() {
+            this._clients.forEach(function (c) { c.update(); });
         }
         get strength() {
             return this._strength;
@@ -216,10 +223,32 @@ var BABYLONX;
         update() { }
         addEffector(effector, sensitivity) {
             this._effectors.push({ effector: effector, sensitivity: sensitivity });
+            effector.addClient(this);
             this.update();
         }
         get effectors() {
             return this._effectors;
+        }
+        eScale(vec) {
+            var vRet = Cloner.vZero.add(vec);
+            for (let i = 0; i < this._effectors.length; i++) {
+                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updateScale(vRet), this._effectors[i].sensitivity);
+            }
+            return vRet;
+        }
+        eRotate(vec) {
+            var vRet = Cloner.vZero.add(vec);
+            for (let i = 0; i < this._effectors.length; i++) {
+                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updateRotation(vRet), this._effectors[i].sensitivity);
+            }
+            return vRet;
+        }
+        ePosition(vec) {
+            var vRet = Cloner.vZero.add(vec);
+            for (let i = 0; i < this._effectors.length; i++) {
+                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updatePosition(vRet), this._effectors[i].sensitivity);
+            }
+            return vRet; // BABYLON.Vector3.Lerp(vec,vRet,this._effectorStrength.x);
         }
     }
     Cloner.vOne = new BABYLON.Vector3(1, 1, 1);
@@ -267,29 +296,8 @@ var BABYLONX;
                 n.createClone(this._mesh[cix], this._useInstances, `${this._mesh[cix].name}_rc${this._instance_nr}_${i}`);
             }
         }
-        eScale(vec) {
-            var vRet = Cloner.vZero.add(vec);
-            for (let i = 0; i < this._effectors.length; i++) {
-                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updateScale(vRet), this._effectors[i].sensitivity);
-            }
-            return vRet;
-        }
         eReset() {
             this._effectors.forEach(function (e) { e.effector.reset(); });
-        }
-        ePosition(vec) {
-            var vRet = Cloner.vZero.add(vec);
-            for (let i = 0; i < this._effectors.length; i++) {
-                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updatePosition(vRet), this._effectors[i].sensitivity);
-            }
-            return vRet; // BABYLON.Vector3.Lerp(vec,vRet,this._effectorStrength.x);
-        }
-        eRotate(vec) {
-            var vRet = Cloner.vZero.add(vec);
-            for (let i = 0; i < this._effectors.length; i++) {
-                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updateRotation(vRet), this._effectors[i].sensitivity);
-            }
-            return vRet;
         }
         calcRot() {
             for (let i = 0; i < this._count; i++) {
@@ -465,20 +473,6 @@ var BABYLONX;
                 n.createClone(this._mesh[cix], this._useInstances, `${this._mesh[cix].name}_lc${LinearCloner.instance_nr}_${i}`);
             }
         }
-        eRotate(vec) {
-            var vRet = Cloner.vZero.add(vec);
-            for (let i = 0; i < this._effectors.length; i++) {
-                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updateRotation(vRet), this._effectors[i].sensitivity);
-            }
-            return vRet;
-        }
-        eScale(vec) {
-            var vRet = Cloner.vZero.add(vec);
-            for (let i = 0; i < this._effectors.length; i++) {
-                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updateScale(vRet), this._effectors[i].sensitivity);
-            }
-            return vRet;
-        }
         calcSize() {
             for (let i = 1; i < this._count; i++) {
                 var orig = BABYLON.Vector3.Lerp(Cloner.vOne, this._S, this._iModeStep ? i : i / (this._count - 1));
@@ -487,14 +481,6 @@ var BABYLONX;
         }
         eReset() {
             this._effectors.forEach(function (e) { e.effector.reset(); });
-        }
-        ePosition(vec) {
-            var vRet = Cloner.vZero.add(vec);
-            for (let i = 0; i < this._effectors.length; i++) {
-                vRet = BABYLON.Vector3.Lerp(vec, this._effectors[i].effector.updatePosition(vRet), this._effectors[i].sensitivity);
-            }
-            var out = vRet; // BABYLON.Vector3.Lerp(vec,vRet,this._effectors[0].x);
-            return out;
         }
         calcPos() {
             this.eReset();

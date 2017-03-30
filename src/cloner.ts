@@ -552,7 +552,7 @@ module BABYLONX {
             this._clones[0].position=this.ePosition(this._clones[0].position);
             for (let i = 1; i < this._count; i++) {
                 this._clones[i].position = BABYLON.Vector3.Lerp(Cloner.vZero, this._P, f);
-                this._clones[i].position=this.ePosition(this._clones[i].position);
+                this._clones[i].getChildren()[0].position=this.ePosition(Cloner.vZero);
            }
         }
         calcRot() {

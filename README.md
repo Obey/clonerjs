@@ -30,6 +30,6 @@ BABYLON Cloners
 		FormulaEffector: coming soon, influences Scale/Position/Rotation via text thought to control from outside (html-page).
 	</li>
 	<li>
-		StepEffector, TimeEcffector, DelayEffector and much more ???
+		StepEffector, TimeEffector, DelayEffector and much more ???
 	</li>
 </ul><p> 

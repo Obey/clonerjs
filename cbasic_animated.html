@@ -119,10 +119,7 @@
             uniformScale:false
 
         }
-        var ani_params= {
-            animate:false
-        }
-        var g_animate=false;
+
         function init_gui() {
             var pcontroller = {};
             var scontroller = {};
@@ -224,23 +221,6 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
             rrcontroller.y = f1.add(rand_params, 'RY').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
             rrcontroller.z = f1.add(rand_params, 'RZ').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
             
-            gui.add(ani_params,"animate").onChange(function (value) {
-                g_animate=value;
-                if(value==true) {
-                    reff.position = {x:7,y:7,z:7};
-                    reff.rotation = {x:238,y:0,z:0};
-                    reff.scale= {x:1.5,y:0,z:0,u:true};
-                    reff.strength=1;
-                    
-                } else {
-                    reff.position = {x:0,y:0,z:0};
-                    reff.rotation = {x:0,y:0,z:0};
-                    reff.scale= {x:0,y:0,z:0,u:true};
-                    reff.strength=0;
-                cc.update();
-                rr.update();
-                }
-            });
             //
         }
         
@@ -283,22 +263,20 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
         cc.addEffector(reff,lin_params.peffectorstrength);
         rr.addEffector(reff,rad_params.peffectorstrength);
 
-        //reff.position = {x:7,y:7,z:7};
-        //reff.rotation = {x:238,y:0,z:0};
-        //reff.scale= {x:1.0,y:0,z:0,u:true};
-        //reff.strength=1;
+        reff.position = {x:7,y:7,z:7};
+        reff.rotation = {x:238,y:0,z:0};
+        reff.scale= {x:1.0,y:0,z:0,u:true};
+        reff.strength=1;
 
         var frame = 0;
         demo.scene.registerBeforeRender(function () {
             frame++;
             cc.root.rotation.y += 0.01;
             rr.root.rotation.y -= 0.005;
-            if(g_animate) {
-                cc.effectors[0].sensitivity=Math.sin(frame*.005)*Math.sin(frame*.005);
-                rr.effectors[0].sensitivity=Math.cos(frame*.005)*Math.cos(frame*.005);
-                cc.update();
-                rr.update();
-            }
+            cc.effectors[0].sensitivity=1+Math.sin(frame*.01);
+            rr.effectors[0].sensitivity=1+Math.cos(frame*.01);
+            cc.update();
+            rr.update();
 
         });
 

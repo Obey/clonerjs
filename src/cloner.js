@@ -190,10 +190,12 @@ var BABYLONX;
             this._position.z = p.z;
         }
         set scale(s) {
-            this._scale.x = s.x;
-            this._scale.y = s.y;
-            this._scale.z = s.z;
             this._uniformScale = s.u;
+            this._scale.x = this._scale.y = this._scale.z = s.x;
+            if (s.u == false) {
+                this._scale.y = s.y;
+                this._scale.z = s.z;
+            }
         }
         set rotation(s) {
             this._rotation.x = s.x * Math.PI / 180;

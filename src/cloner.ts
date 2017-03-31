@@ -82,6 +82,25 @@ module BABYLONX {
             //cone.rotation.x=Math.PI/4;
             return cone;
         }
+        createCylinder(height = 1, color = BABYLON.Color3.Green()) {
+            var mat = new BABYLON.StandardMaterial("cmat" + Demoscene.objInstances, this._scene);
+            //var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demoscene.objInstances, { height: height, diameterTop: height/2,diameterBottom: height/2, tessellation: 32 }, this._scene);
+             var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demoscene.objInstances, { height: height, tessellation: 32 }, this._scene);
+           mat.diffuseColor = color;
+            mat.specularColor = BABYLON.Color3.Green();
+            cone.material = mat;
+            var marbleTexture = new BABYLON.MarbleProceduralTexture("marble", 512, this.scene);
+            marbleTexture.numberOfTilesHeight = 1.0;
+            marbleTexture.numberOfTilesWidth = .5;
+            //marbleTexture.jointColor=new BABYLON.Color3(0,0,1);
+            //marbleTexture.marbleColor=new BABYLON.Color3(1,0,0);
+            marbleTexture.amplitude = 9.2;
+            mat.diffuseTexture = marbleTexture;
+            Demoscene.objInstances++;
+            //cone.rotation.x=Math.PI/4;
+            return cone;
+        }
+        
         createSphere(diameter: 1, color = BABYLON.Color3.Blue()) {
             var mat = new BABYLON.StandardMaterial("stdmat" + Demoscene.objInstances, this._scene);
             var sphere = BABYLON.MeshBuilder.CreateSphere("sphere" + Demoscene.objInstances, { diameter: diameter }, this._scene);

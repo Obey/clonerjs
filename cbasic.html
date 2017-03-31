@@ -76,9 +76,9 @@
         });
         var lin_params = {
             caption: "",
-            count: 20,
+            count: 18,
             PX: 0,
-            PY: 1.1,
+            PY: 1.45,
             PZ: 0,
             SX: 1,
             SY: 1,
@@ -257,7 +257,7 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
         }
         var c = demo.createCube(1, BABYLON.Color3.FromHexString("#DAA520"));
         //var b=demo.createCube(.5,BABYLON.Color3.FromHexString("#5555FF"));
-        var d = demo.createCone(.5, BABYLON.Color3.FromHexString("#55FFDC"));
+        var d = demo.createCylinder(.9, BABYLON.Color3.FromHexString("#55FFDC"));
 
         var cc = new BABYLONX.LinearCloner([c, d], demo.scene, lin_opts);
         cc.root.position.z = 0;
@@ -271,7 +271,7 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
         bb.scaling = new BABYLON.Vector3(1, 0.5, 0.5);
         var b2 = demo.createCube(1, BABYLON.Color3.FromHexString("#DA6620"));
         var rr = new BABYLONX.RadialCloner([bb, b2], demo.scene, rad_opts);
-        cc.root.position.y = -8;
+        cc.root.position.y = -11;
 
 
         var reff = new BABYLONX.RandomEffector();

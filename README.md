@@ -1,35 +1,38 @@
 # clonerjs
-BABYLON Simple Cloner System (BSCS)
+Babylon JS Cloner System (BCS)
  
 <p>
-	Extension for <a href="http://www.babylonjs.com/"> BabylonJS framework </a>
+	A Typescript based project for sytematically duplicating Babylon meshes 
 </p>
 Definitions:
 <ul><li>
 		Cloners: given one or several meshes, either clones or instances will distributed in a specific manner. If more than one mesh is provided, the meshes are distributed alternatively. Additionally, cloners can be nested, so it is possible to clone cloners. Each cloner can have several Effectors (in particular order) to influence the Scale/Position/Rotation parameter of a clone (or cloner). A sensitivity parameter controls this influence for a cloner. Following Objects are designated:
 	</li>
 	<li>
-		RadialCloner: radial distribution where following parameters are recognized: count, radius, offset, startangle, endangle, Effector-sensitivity for Position, Scale and Rotation, alignment-flag, orientation.
+		RadialCloner: radial distribution where following parameters are recognized: input-meshlist, count, radius, offset, startangle, endangle, Effector-sensitivity for Position, Scale and Rotation, alignment-flag, orientation.
 	</li>
 	<li>
-		LinearCloner: linear distribution where following parameters are recognized:count, offset, growth, Effector-sensitivity for Position, Scale and Rotation. An interpolation-mode-flag&nbsp; determines, if the clone -parameters (Scale/Position/Rotation) are interpreted as "step" or "end"-values.
+		LinearCloner: linear distribution where following parameters are recognized: input-meshlist, count, offset, growth, Effector-sensitivity for Position, Scale and Rotation. An interpolation-mode-flag&nbsp; determines, if the clone -parameters (Scale/Position/Rotation) are interpreted as "step" or "end"-values.
 	</li>
 	<li>
-		MatrixCloner: coming soon (clones will be distributed in&nbsp; 3D space)
+		MatrixCloner: distribution in 3D space where following parameters are recognized: input-meshlist, mcount, size.
 	</li>
 	<li>
-		PlanarCloner: coming soon (clones will be distributed in 2D space)
-	</li>
-	<li>
-		ObjectCloner: coming soon (clones will be distributed in relation to the internals of a given mesh (vertices, edges, triangles ...)
+		ObjectCloner: distribution over faces of a mesh where following parameters are recognized: input-meshlist, reference-mesh.
 	</li>
 	<li>
 		RandomEffector: influences Scale/Position/Rotation of a clone with repeatable random values, controlled with an overall "strength" parameter. Not quite finished, but basically working.
 	</li>
-	<li>
-		FormulaEffector: coming soon, influences Scale/Position/Rotation via text thought to control from outside (html-page).
-	</li>
-	<li>
-		StepEffector, TimeEffector, DelayEffector and much more ???
-	</li>
 </ul><p> 
+<p>
+	Demos
+</p>
+<p>
+	<a href="http://johann.langhofer.net/clonerjs/cbasic.html" rel="external nofollow noopener noreferrer" target="_blank">Cloner Basic Scene.</a>
+	<a href="http://www.babylonjs-playground.com/#1NYYEQ%235" rel="external nofollow noopener noreferrer" target="_blank">ObjectCloner</a>
+	<a href="http://www.babylonjs-playground.com/#1NYYEQ%236" rel="external nofollow noopener noreferrer" target="_blank">MatrixCloner</a>
+	<a href="http://www.babylonjs-playground.com/#1NYYEQ%237" rel="external nofollow noopener noreferrer" target="_blank">RadialCloner combined with MatrixCloner</a>
+</p>
+
+</p>
+

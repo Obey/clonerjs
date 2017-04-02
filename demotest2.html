@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>ObjectCloner</title>
+    <!-- Babylon.js -->
+
+    <script src="lib/b3alpha.max.js"></script>
+    <script src="lib/babylon.marbleProceduralTexture.js"></script>
+    <script src="lib/dat.gui.min.js"></script>
+    <script src="src/cloner.js"></script>
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px;
+            background-color: #333344;
+        }
+        
+        #target {
+            position: absolute;
+            top: 0em;
+            left: 0em;
+        }
+        
+        #btest {
+            position: absolute;
+            top: 6em;
+            left: 15em;
+        }
+        
+        #btest2 {
+            position: absolute;
+            top: 8em;
+            left: 15em;
+        }
+        
+        #sliderCount {
+            position: absolute;
+            top: 8em;
+            left: 3em;
+        }
+        
+        #sliderGrowth {
+            position: absolute;
+            top: 10em;
+            left: 3em;
+        }
+        
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+        }
+        
+        .dg {
+            color: #00AA00;
+            text-shadow: none !important;
+        }
+    </style>
+</head>
+
+<body bgcolor="#333344" oncontextmenu="return false; ">
+    <canvas id="renderCanvas"></canvas>
+    
+    <script>
+        /*
+
+*/
+        var gui = new dat.GUI({
+            height: 5 * 32 - 1
+        });
+        var matrix_params = {
+            countX: 4,
+            countY: 4,
+            countZ: 4,
+            sizeX: 2,
+            sizeY: 2,
+            sizeZ: 2,
+            peffectorstrength: 1,
+            interpolmode: "step"
+        }
+        var rand_params = {
+            strength: 0,
+            PX: 0,
+            PY: 0,
+            PZ: 0,
+            SX: 0,
+            SY: 0,
+            SZ:0,
+            RX: 0,
+            RY: 0,
+            RZ: 0,
+            uniformScale:false,
+            seed: 123
+
+        }
+        var ani_params= {
+            animate:false
+        }
+        var g_animate=false;
+        function init_gui() {
+            var pcontroller = {};
+            var scontroller = {};
+            var rcontroller = {};
+            var rpcontroller = {};
+            var rscontroller = {};
+            var rrcontroller = {};
+            var mcount = {};
+            var msize = {};
+            gui.add({count:3},"count").min(1).max(10).step(1).onChange(function (value) {rc.count=value});
+            gui.add({radius:6},"radius").min(0).max(10).step(1).onChange(function (value) {rc.radius=value});
+            gui.add({align:false},"align").onChange(function (value) {rc.align=value});
+            var re = gui.addFolder("RandomEffector");
+            re.add(rand_params, 'strength').min(0).max(1).step(.02).onChange(function (value) { reff.strength = value; reff.updateClients() });
+            re.add(rand_params,'seed').min(1).max(1000).step(1).onChange(function (value) {reff.seed=value;reff.updateClients() });
+           f1 = re.addFolder('Random-Position');
+            rpcontroller.x = f1.add(rand_params, 'PX').min(-20).max(20).step(1).onChange(function (value) { reff.position = { x: rpcontroller.x.getValue(), y: rpcontroller.y.getValue(), z: rpcontroller.z.getValue() }; reff.updateClients() });
+            rpcontroller.y = f1.add(rand_params, 'PY').min(-20).max(20).step(1).onChange(function (value) { reff.position = { x: rpcontroller.x.getValue(), y: rpcontroller.y.getValue(), z: rpcontroller.z.getValue() }; reff.updateClients() });
+            rpcontroller.z = f1.add(rand_params, 'PZ').min(-20).max(20).step(1).onChange(function (value) { reff.position = { x: rpcontroller.x.getValue(), y: rpcontroller.y.getValue(), z: rpcontroller.z.getValue() }; reff.updateClients() });
+            f1 = re.addFolder('Random-Scale');
+            var handleScale=function(value) {
+                let x=rscontroller.x.getValue();
+                let y=rscontroller.y.getValue();
+                let z=rscontroller.z.getValue();
+                let u=rscontroller.u.getValue();
+                if(u) {
+                    y=z=x;
+                }
+                
+                reff.scale = { x: x, y: y, z: z,u:u };
+                reff.updateClients();
+            }
+            
+            rscontroller.x = f1.add(rand_params, 'SX').min(-1).max(5).step(.1).onChange(function(value){handleScale(value)});
+            rscontroller.y = f1.add(rand_params, 'SY').min(-1).max(5).step(.1).onChange(function(value){handleScale(value)});
+            rscontroller.z = f1.add(rand_params, 'SZ').min(-1).max(5).step(.1).onChange(function(value){handleScale(value)});
+            rscontroller.u= f1.add(rand_params, 'uniformScale').onChange(function (value) {
+                rscontroller.y.domElement.hidden=value;
+                rscontroller.z.domElement.hidden=value;
+                handleScale(value);
+
+            });
+            var handleRotation=function(value) {
+                let x=rrcontroller.x.getValue();
+                let y=rrcontroller.y.getValue();
+                let z=rrcontroller.z.getValue();
+                 
+                reff.rotation = { x: x, y: y, z: z };
+                reff.updateClients()
+            }
+            f1 = re.addFolder('Random-Rotation')
+            rrcontroller.x = f1.add(rand_params, 'RX').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
+            rrcontroller.y = f1.add(rand_params, 'RY').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
+            rrcontroller.z = f1.add(rand_params, 'RZ').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
+
+            gui.add(ani_params,"animate").onChange(function (value) {
+                g_animate=value;
+                if(value==true) {
+                    //reff.position = {x:15,y:15,z:15};
+                    //reff.rotation = {x:238*5,y:200*5,z:200*5};
+                    //reff.scale= {x:1.0,y:1.0,z:1.0,u:true};
+                    reff.strength=1;
+                    //mm.mcount={x:9,y:9,z:1}
+                    //mm.size={x:2,y:2,z:2}
+                    
+                } else {
+                    reff.position = {x:0,y:0,z:0};
+                    reff.rotation = {x:0,y:0,z:0};
+                    reff.scale= {x:0,y:0,z:0,u:true};
+                    reff.strength=0;
+                    reff.updateClients();
+                }
+            });
+            //
+        }
+        
+        init_gui();
+
+        var demo = new BABYLONX.Demoscene();
+        demo.init();
+        var demomeshes= new BABYLONX.Demomeshes(demo.scene);
+        var scene=demo.scene;
+        //demo._scene.debugLayer.show();
+
+       var matrix_opts = {
+            iModeStep: matrix_params.interpolmode == "step",
+            size: {x:matrix_params.sizeX,y:matrix_params.sizeY,z:matrix_params.sizeZ},
+            mcount: {x:matrix_params.countX,y:matrix_params.countY,z:matrix_params.countZ},
+            useInstances: true
+        }
+       var matrix_opts2 = {
+            iModeStep: matrix_params.interpolmode == "step",
+            size: {x:matrix_params.sizeX*6,y:matrix_params.sizeY*6,z:matrix_params.sizeZ*6},
+            mcount: {x:matrix_params.countX,y:matrix_params.countY,z:matrix_params.countZ},
+            useInstances: true
+        }
+        var rad_opts = {
+            count: 5,
+            radius: 10,
+        }
+
+        var box1 = demomeshes.createCube({w:0.425,h:0.425,d:0.425},"#DAA520");
+        var box2 = demomeshes.createCube({w:1,h:0.5,d:0.5}, "#DCDCDC");
+        var box3 = demomeshes.createCube({w:0.5,h:0.5,d:1}, "#DA6620");
+        var sph2=  demomeshes.createSphere(.5, "#55FFDC",16);
+        //var sph1 = demomeshes.createIcoSphere(8);
+        
+        var oc=new BABYLONX.MatrixCloner([box1,box2,box3,sph2], scene,{mcount:{x:5,y:1,z:5},size:{x:1,y:2,z:1}});
+        var rc= new BABYLONX.RadialCloner([oc],scene,{radius:5,align:false}); 
+        
+       
+        var reff = new BABYLONX.RandomEffector();    
+        rc.addEffector(reff,matrix_params.peffectorstrength);
+ 
+
+        var frame = 0;
+        demo.scene.registerBeforeRender(function () {
+            frame++;
+            rc.root.rotation.y += 0.0015;
+            //mm2.root.rotation.y -= 0.01;
+            if(g_animate) {
+                rc.effectors[0].sensitivity=Math.sin(frame*.14)*Math.sin(frame*.14);
+               reff.updateClients();
+           }
+
+        });
+
+    </script>
+</body>
+
+
+
+</html>

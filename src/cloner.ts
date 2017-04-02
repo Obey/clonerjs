@@ -3,6 +3,75 @@
 
 ///<reference path="../lib/babylon.marbleProceduralTexture.d.ts" />
 module BABYLONX {
+    export class Demomeshes {
+        static objInstances: number;
+        private _scene;
+        constructor(scene) {
+            Demomeshes.objInstances = 0 | (Demomeshes.objInstances + 1);
+            this._scene=scene;
+        }
+       createCube(size = { w: 1, h: 1, d: 1 },  color = "#FF0000") {
+            var options = { width: size.w, depth: size.d, height: size.h };
+            var cube = BABYLON.MeshBuilder.CreateBox("cube"+ Demomeshes.objInstances, options, this._scene);
+            var mat = new BABYLON.StandardMaterial("mcube" + Demomeshes.objInstances, this._scene);
+            mat.diffuseColor =  BABYLON.Color3.FromHexString(color);
+            mat.specularColor = BABYLON.Color3.Green();
+            //mat.wireframe=true;
+            cube.material = mat;
+            var marbleTexture = new BABYLON.MarbleProceduralTexture("marble"+ Demomeshes.objInstances, 512, this._scene);
+            marbleTexture.numberOfTilesHeight = .5;
+            marbleTexture.numberOfTilesWidth = .5;
+            marbleTexture.jointColor = new BABYLON.Color3(0, 0, 1);
+            //marbleTexture.marbleColor=new BABYLON.Color3(1,0,0);
+            marbleTexture.amplitude = 9.0;
+            mat.diffuseTexture = marbleTexture;
+            //mat.alpha=.3;
+            //mat.diffuseTexture.hasAlpha=true;  
+            Demomeshes.objInstances++;
+            return cube;
+       }
+        createCylinder(height = 1, color = "#00ff00",top=0.5,bottom=0.5) {
+            var mat = new BABYLON.StandardMaterial("cmat" + Demomeshes.objInstances, this._scene);
+            var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demomeshes.objInstances, { height: height, diameterTop:top,diameterBottom: bottom, tessellation: 32 }, this._scene);
+            //var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demomeshes.objInstances, { height: height, tessellation: 32 }, this._scene);
+            mat.diffuseColor = BABYLON.Color3.FromHexString(color);
+            mat.specularColor = BABYLON.Color3.Green();
+            cone.material = mat;
+            var marbleTexture = new BABYLON.MarbleProceduralTexture("marble"+ Demomeshes.objInstances, 512, this._scene);
+            marbleTexture.numberOfTilesHeight = 1.0;
+            marbleTexture.numberOfTilesWidth = .5;
+            //marbleTexture.jointColor=new BABYLON.Color3(0,0,1);
+            //marbleTexture.marbleColor=new BABYLON.Color3(1,0,0);
+            marbleTexture.amplitude = 9.2;
+            mat.diffuseTexture = marbleTexture;
+            Demomeshes.objInstances++;
+            //cone.rotation.x=Math.PI/4;
+            return cone;
+        }
+        createIcoSphere(radius=6) {
+            var mesh = BABYLON.MeshBuilder.CreateIcoSphere("m", {radius: radius}, this._scene);
+            mesh.updateFacetData();
+            return mesh;
+        }
+        createSphere(diameter= 1, color = "#0000ff",segments=32) {
+            var mat = new BABYLON.StandardMaterial("stdmat" + Demomeshes.objInstances, this._scene);
+            var sphere = BABYLON.MeshBuilder.CreateSphere("sphere" + Demomeshes.objInstances, { diameter: diameter,segments:segments }, this._scene);
+            //mat.diffuseTexture= new BABYLON.Texture("testtexture.png",this.scene);
+            var marbleTexture = new BABYLON.MarbleProceduralTexture("marble", 512, this._scene);
+            marbleTexture.numberOfTilesHeight = 1.0;
+            marbleTexture.numberOfTilesWidth = .5;
+            //marbleTexture.jointColor=new BABYLON.Color3(0,0,1);
+            //marbleTexture.marbleColor=new BABYLON.Color3(1,0,0);
+            marbleTexture.amplitude = 9.2;
+            mat.diffuseTexture = marbleTexture;
+            mat.diffuseColor = BABYLON.Color3.FromHexString(color);
+            mat.specularColor = BABYLON.Color3.Green();
+            sphere.material = mat;
+            Demomeshes.objInstances++;
+            return sphere;
+
+        }
+    }
     export class Demoscene {
         static objInstances: number;
         private _engine;
@@ -45,11 +114,10 @@ module BABYLONX {
         }
         objects() {
         }
-        createCube(size = 1, color = BABYLON.Color3.Red()) {
-            var cube = BABYLON.Mesh.CreateBox("cube" + Demoscene.objInstances, size, this._scene);
+        createCubeInternal(cube, color) {
             var mat = new BABYLON.StandardMaterial("mcube" + Demoscene.objInstances, this._scene);
 
-            mat.diffuseColor = color;
+            mat.diffuseColor = color;// BABYLON.Color3.FromHexString(color);
             mat.specularColor = BABYLON.Color3.Green();
             //mat.wireframe=true;
             cube.material = mat;
@@ -64,6 +132,15 @@ module BABYLONX {
             //mat.diffuseTexture.hasAlpha=true;  
             Demoscene.objInstances++;
             return cube;
+        }
+        createCubeX(scene ,size = { w: 1, h: 1, d: 1 },  color = "#FF0000") {
+            var options = { width: size.w, depth: size.d, height: size.h };
+            var cube = BABYLON.MeshBuilder.CreateBox("cube", options, scene);
+            return this.createCubeInternal(cube, BABYLON.Color3.FromHexString(color));
+        }
+        createCube(size = 1, color = BABYLON.Color3.Red()) {
+            var cube = BABYLON.Mesh.CreateBox("cube" + Demoscene.objInstances, size, this._scene);
+            return this.createCubeInternal(cube, color);
         }
         createCone(height = 1, color = BABYLON.Color3.Green()) {
             var mat = new BABYLON.StandardMaterial("cmat" + Demoscene.objInstances, this._scene);
@@ -85,8 +162,8 @@ module BABYLONX {
         createCylinder(height = 1, color = BABYLON.Color3.Green()) {
             var mat = new BABYLON.StandardMaterial("cmat" + Demoscene.objInstances, this._scene);
             //var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demoscene.objInstances, { height: height, diameterTop: height/2,diameterBottom: height/2, tessellation: 32 }, this._scene);
-             var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demoscene.objInstances, { height: height, tessellation: 32 }, this._scene);
-           mat.diffuseColor = color;
+            var cone = BABYLON.MeshBuilder.CreateCylinder("cone" + Demoscene.objInstances, { height: height, tessellation: 32 }, this._scene);
+            mat.diffuseColor = color;
             mat.specularColor = BABYLON.Color3.Green();
             cone.material = mat;
             var marbleTexture = new BABYLON.MarbleProceduralTexture("marble", 512, this.scene);
@@ -100,10 +177,14 @@ module BABYLONX {
             //cone.rotation.x=Math.PI/4;
             return cone;
         }
-        
-        createSphere(diameter: 1, color = BABYLON.Color3.Blue()) {
+        createIcoSphere(scene, radius=6) {
+            var mesh = BABYLON.MeshBuilder.CreateIcoSphere("m", {radius: radius}, scene);
+            mesh.updateFacetData();
+            return mesh;
+        }
+        createSphere(diameter= 1, color = BABYLON.Color3.Blue(),segments=32) {
             var mat = new BABYLON.StandardMaterial("stdmat" + Demoscene.objInstances, this._scene);
-            var sphere = BABYLON.MeshBuilder.CreateSphere("sphere" + Demoscene.objInstances, { diameter: diameter }, this._scene);
+            var sphere = BABYLON.MeshBuilder.CreateSphere("sphere" + Demoscene.objInstances, { diameter: diameter,segments:segments }, this._scene);
             //mat.diffuseTexture= new BABYLON.Texture("testtexture.png",this.scene);
             var marbleTexture = new BABYLON.MarbleProceduralTexture("marble", 512, this._scene);
             marbleTexture.numberOfTilesHeight = 1.0;
@@ -164,7 +245,7 @@ module BABYLONX {
             return c;
         }
     }
-    enum EFFECTOR_STRENGTH {
+    enum EFFECTOR_STRENGTHXX {
         ALL = 7,
         POSITION = 1,
         ROTATION = 2,
@@ -174,12 +255,12 @@ module BABYLONX {
         private _seed: number;
         private _s: number;
         private _rfunction;
-        private _strength: number = 1.0;
+        private _strength: number = 0.0;
         private _position: BABYLON.Vector3 = new BABYLON.Vector3(0, 0, 0);
         private _rotation: BABYLON.Vector3 = new BABYLON.Vector3(0, 0, 0);
         private _scale: BABYLON.Vector3 = new BABYLON.Vector3(0, 0, 0);
         private _uniformScale = false;
-        private _clients=[];
+        private _clients = [];
         constructor(seed = 42) {
             this._seed = this._s = seed;
             this._rfunction = function () {
@@ -216,33 +297,36 @@ module BABYLONX {
             this._clients.push(c);
         }
         updateClients() {
-            this._clients.forEach(function(c){c.update()})
+            this._clients.forEach(function (c) { c.update() })
         }
-        get strength() {
+        get strength():number {
             return this._strength;
         }
-        set strength(s) {
+        set strength(s:number) {
             this._strength = s;
 
         }
-        set position(p) {
+        set position(p:{x,y,z}) {
             this._position.x = p.x;
             this._position.y = p.y;
             this._position.z = p.z;
         }
-        set scale(s) {
+        set scale(s:{x,y,z,u}) {
             this._uniformScale = s.u;
-            this._scale.x = this._scale.y=this._scale.z = s.x;
-            if(s.u==false) {
-            this._scale.y = s.y;
-            this._scale.z = s.z;
+            this._scale.x = this._scale.y = this._scale.z = s.x;
+            if (s.u == false) {
+                this._scale.y = s.y;
+                this._scale.z = s.z;
             }
-            
+
         }
-        set rotation(s) {
+        set rotation(s:{x,y,z}) {
             this._rotation.x = s.x * Math.PI / 180;
             this._rotation.y = s.y * Math.PI / 180;
             this._rotation.z = s.z * Math.PI / 180;
+        }
+        set seed(s:number) {
+            this._seed = this._s = s;
         }
 
     }
@@ -289,6 +373,9 @@ module BABYLONX {
             }
             return vRet;// BABYLON.Vector3.Lerp(vec,vRet,this._effectorStrength.x);
         }
+        eReset() {
+            this._effectors.forEach(function (e) { e.effector.reset() });
+        }
 
     }
     export class RadialCloner extends Cloner {
@@ -330,7 +417,7 @@ module BABYLONX {
             //this._rootNode=new CMesh("root",this._scene,this);
             this._rootNode = new CMesh(`rootRC_${this._instance_nr}`, this._scene, null, this);
             this.createClones();
-            this.calcPos();
+            this.update();
 
         }
         createClone(parent, dummyUseInstances = null, dummyName = null) {
@@ -350,9 +437,6 @@ module BABYLONX {
                 let cix = i % this._mesh.length;
                 n.createClone(this._mesh[cix], this._useInstances, `${this._mesh[cix].name}_rc${this._instance_nr}_${i}`);
             }
-        }
-        eReset() {
-            this._effectors.forEach(function (e) { e.effector.reset() });
         }
         calcRot() {
             for (let i = 0; i < this._count; i++) {
@@ -489,6 +573,185 @@ module BABYLONX {
             this.update();
         }
     }
+    export class ObjectCloner extends Cloner {
+        static instance_nr;
+        private _useInstances: boolean=true;
+        private _template;
+        private _instance_nr;
+        private _positions;
+        private _normals;
+        constructor(mesh,template:BABYLON.Mesh,scene){
+            super();
+            ObjectCloner.instance_nr = 0 | (ObjectCloner.instance_nr + 1);
+            this._mesh = mesh;
+            this._scene=scene;
+            this._template=template;
+            this._clones = [];
+            this._positions=template.getFacetLocalPositions();
+            this._normals=template.getFacetLocalNormals();
+            this._template.isVisible=false;//  setEnabled(false);
+            this._mesh.forEach(function (m) {
+                m.setEnabled(false);
+            })
+            this._instance_nr = ObjectCloner.instance_nr;
+            this._rootNode = new CMesh(`rootOC_${ObjectCloner.instance_nr}`, this._scene, null, this);
+            this.createClones();
+            this.calcPos();
+        }
+        createClones(start = 0) {
+            var cix = 0;
+            this._count=this._positions.length;
+            for(let i=0;i<this._positions.length;i++) {
+                cix = i % this._mesh.length;
+                var n = new CMesh(`n_lc${ObjectCloner.instance_nr}_${i}`, this._scene, this._rootNode);
+                this._clones.push(n);
+                n.createClone(this._mesh[cix], this._useInstances, `${this._mesh[cix].name}_mc${ObjectCloner.instance_nr}_${i}`);
+           }
+        }
+        calcRot() {
+            for (let i = 0; i < this._count; i++) {
+                let vRet = this.eRotate(Cloner.vZero);
+                this._clones[i].getChildren()[0].rotation = vRet;
+            }
+
+        }
+        calcSize() {
+            for (let i = 0; i < this._count; i++) {
+                this._clones[i].scaling = this.eScale(Cloner.vOne);
+            }
+        }
+        calcPos() { 
+            this.eReset();
+            for(let i=0;i<this._clones.length;i++) {
+                this._clones[i].position=this.ePosition(this._positions[i]);
+                /*
+                this._clones[i].position.x=this._positions[i].x;
+                this._clones[i].position.y=this._positions[i].y;
+                this._clones[i].position.z=this._positions[i].z;
+                */
+           }
+        }
+        update() {
+            if (this._count > 0) {
+                this.calcRot();
+                this.calcPos();
+                this.calcSize();
+            }
+        }
+        get root() {
+            return this._rootNode;
+        }
+    }
+    export class MatrixCloner extends Cloner {
+        static instance_nr;
+        private _useInstances: boolean;
+        private _size;
+        private _mcount;
+        private _iModeStep;
+        private _instance_nr;
+
+        constructor(mesh, scene, { useInstances = true, mcount = { x: 3, y: 3, z: 3 }, size = { x: 2, y: 2, z: 2 }, iModeStep = false } = {}) {
+            super();
+            MatrixCloner.instance_nr = 0 | (MatrixCloner.instance_nr + 1);
+            this._mesh = mesh;
+            this._mesh.forEach(function (m) {
+                m.setEnabled(false);
+            })
+            this._scene = scene,
+                this._useInstances = useInstances;
+            this._clones = [];
+            this._size = size;
+            this._mcount = mcount;
+            this._count = Number(mcount.x * mcount.y * mcount.z);
+            this._iModeStep = iModeStep;
+            this._instance_nr = MatrixCloner.instance_nr;
+            this._rootNode = new CMesh(`rootMC_${MatrixCloner.instance_nr}`, this._scene, null, this);
+            this.createClones();
+            this.update();
+        }
+        createClone(parent, dummyUseInstances = null, dummyName = null) {
+            var c = new MatrixCloner(this._mesh, this._scene, { mcount: this._mcount, size:this._size })
+            parent._cloner = c;
+            c.root.parent = parent;
+            return c.root;
+        }
+        createClones(start = 0) {
+            var cix = 0;
+            for (let z = start; z < this._mcount.z; z++) {
+                for (let y = start; y < this._mcount.y; y++) {
+                    for (let x = start; x < this._mcount.x; x++) {
+                        var n = new CMesh(`n_lc${MatrixCloner.instance_nr}_${x}${y}${z}`, this._scene, this._rootNode);
+                        this._clones.push(n);
+                        var xyz = x + this._mcount.x * y + this._mcount.x * this._mcount.y * z;
+                        cix = xyz % this._mesh.length;
+                        n.createClone(this._mesh[cix], this._useInstances, `${this._mesh[cix].name}_mc${MatrixCloner.instance_nr}_${x}${y}${z}`);
+                    }
+                }
+            }
+            this.calcPos();
+        }
+        set mcount(m) {
+            this._mcount = m;
+            this.delete();
+            this._count = Number(this._mcount.x * this._mcount.y * this._mcount.z);
+            this.createClones();
+        }
+        set size(s) {
+            this._size = s;
+            this.update();
+        }
+        calcRot() {
+            for (let i = 0; i < this._count; i++) {
+                let vRet = this.eRotate(Cloner.vZero);
+                this._clones[i].getChildren()[0].rotation = vRet;
+            }
+
+        }
+        calcSize() {
+            for (let i = 0; i < this._count; i++) {
+                this._clones[i].getChildren()[0].scaling = this.eScale(Cloner.vOne);
+            }
+        }
+        calcPos() {
+            this.eReset();
+            var cix = 0;
+            for (let z = 0; z < this._mcount.z; z++) {
+                for (let y = 0; y < this._mcount.y; y++) {
+                    for (let x = 0; x < this._mcount.x; x++) {
+                        var xyz = x + this._mcount.x * y + this._mcount.x * this._mcount.y * z;
+                        cix = xyz % this._mesh.length;
+                        let xo = -this._size.x * (this._mcount.x - 1) / 2;
+                        let yo = -this._size.y * (this._mcount.y - 1) / 2;
+                        let zo = -this._size.z * (this._mcount.z - 1) / 2;
+                        this._clones[xyz].position.x = xo + x * this._size.x;
+                        this._clones[xyz].position.y = yo + y * this._size.y;
+                        this._clones[xyz].position.z = zo + z * this._size.z;
+                        this._clones[xyz].getChildren()[0].position = this.ePosition(Cloner.vZero);
+                    }
+                }
+            }
+
+        }
+        get root() {
+            return this._rootNode;
+        }
+        delete() {
+            for (let i = this._count - 1; i >= 0; i--) {
+                this._clones[i].delete();
+            }
+            this._clones.length = 0;
+            //this._rootNode.dispose();
+        }
+        update() {
+            if (this._count > 0) {
+                this.calcRot();
+                this.calcPos();
+                this.calcSize();
+            }
+
+
+        }
+    }
     export class LinearCloner extends Cloner {
         static instance_nr;
         private _useInstances: boolean;
@@ -545,9 +808,6 @@ module BABYLONX {
                 this._clones[i].getChildren()[0].scaling = this.eScale(orig);
             }
         }
-        eReset() {
-            this._effectors.forEach(function (e) { e.effector.reset() });
-        }
         calcPos() {
             this.eReset();
             let f = this._growth;
@@ -566,8 +826,10 @@ module BABYLONX {
         calcRot() {
             for (let i = 1; i < this._count; i++) {
                 let item = this._clones[i].getChildren()[0];
-                let rot = BABYLON.Vector3.Lerp(Cloner.vZero, this._R, this._iModeStep ? i * this._growth : i / (this._count - 1) * this._growth);
-                this._clones[i].getChildren()[0].rotation = this.eRotate(this._clones[i].rotation);
+                //this._clones[i].getChildren()[0].rotation = BABYLON.Vector3.Lerp(Cloner.vZero, this._R, this._iModeStep ? i * this._growth : i / (this._count - 1) * this._growth);
+                //this._clones[i].getChildren()[0].rotation = this.eRotate(Cloner.vZero);//   this._clones[i].rotation);
+                let vRot = BABYLON.Vector3.Lerp(Cloner.vZero, this._R, this._iModeStep ? i * this._growth : i / (this._count - 1) * this._growth);
+                this._clones[i].getChildren()[0].rotation = this.eRotate(vRot);//   this._clones[i].rotation);
             }
         }
         update() {
@@ -579,7 +841,6 @@ module BABYLONX {
 
 
         }
-
         recalc() {
             var cnt = this._count;
             this.count = 0;

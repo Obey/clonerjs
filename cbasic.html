@@ -75,10 +75,9 @@
             height: 5 * 32 - 1
         });
         var lin_params = {
-            caption: "",
-            count: 18,
+            count: 15,
             PX: 0,
-            PY: 1.45,
+            PY: 1.5,
             PZ: 0,
             SX: 1,
             SY: 1,
@@ -89,12 +88,21 @@
             peffectorstrength: 0,
             interpolmode: "step",
             offset: 0,
-            growth: .8,
+            growth: 1,
 
         }
+        var matrix_params = {
+            countX: 3,
+            countY: 3,
+            countZ: 3,
+            sizeX: 1,
+            sizeY: 1,
+            sizeZ: 1,
+            peffectorstrength: 0,
+            interpolmode: "step"
+        }
         var rad_params = {
-            caption: "",
-            count: 26,
+             count: 26,
             radius: 8,
             offset: 0,
             plane: "ZX",
@@ -105,7 +113,6 @@
 
         }
         var rand_params = {
-            caption: "",
             strength: 0,
             PX: 0,
             PY: 0,
@@ -116,7 +123,8 @@
             RX: 0,
             RY: 0,
             RZ: 0,
-            uniformScale:false
+            uniformScale:false,
+            seed: 123
 
         }
         var ani_params= {
@@ -139,7 +147,10 @@
                 cc.update(); 
             });
             lf.add(lin_params, 'interpolmode', ['step', 'end']).onChange(function (value) {            
-cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
+                cc.mode = value; 
+                let p = cc.position; 
+                let s = cc.scale; 
+                let r = cc.rotation;
                 pcontroller.x.setValue(p.x);
                 pcontroller.y.setValue(p.y);
                 pcontroller.z.setValue(p.z);
@@ -152,17 +163,17 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
             });
 
             var f1 = lf.addFolder('Position');
-            pcontroller.x = f1.add(lin_params, 'PX').min(-20).max(20).step(.1).onChange(function (value) { cc.position = { x: value, y: cc.position.y, z: cc.position.z }; });
-            pcontroller.y = f1.add(lin_params, 'PY').min(-20).max(20).step(.1).onChange(function (value) { cc.position = { y: value, x: cc.position.x, z: cc.position.z }; });
-            pcontroller.z = f1.add(lin_params, 'PZ').min(-20).max(20).step(.1).onChange(function (value) { cc.position = { z: value, y: cc.position.y, x: cc.position.x }; });
+            pcontroller.x = f1.add(lin_params, 'PX').min(-50).max(50).step(.01).onChange(function (value) { cc.position = { x: value, y: cc.position.y, z: cc.position.z }; });
+            pcontroller.y = f1.add(lin_params, 'PY').min(-50).max(50).step(.01).onChange(function (value) { cc.position = { y: value, x: cc.position.x, z: cc.position.z }; });
+            pcontroller.z = f1.add(lin_params, 'PZ').min(-50).max(50).step(.01).onChange(function (value) { cc.position = { z: value, y: cc.position.y, x: cc.position.x }; });
             f1 = lf.addFolder('Scale');
             scontroller.x = f1.add(lin_params, 'SX').min(0).max(1).step(.01).onChange(function (value) { cc.scale = { x: value, y: cc.scale.y, z: cc.scale.z }; });
             scontroller.y = f1.add(lin_params, 'SY').min(0).max(1).step(.01).onChange(function (value) { cc.scale = { y: value, x: cc.scale.x, z: cc.scale.z }; });
             scontroller.z = f1.add(lin_params, 'SZ').min(0).max(1).step(.01).onChange(function (value) { cc.scale = { z: value, y: cc.scale.y, x: cc.scale.x }; });
             f1 = lf.addFolder('Rotation')
-            rcontroller.x = f1.add(lin_params, 'RX').min(-360).max(360).step(1).onChange(function (value) { cc.rotation = { x: value, y: cc.rotation.y, z: cc.rotation.z }; });
-            rcontroller.y = f1.add(lin_params, 'RY').min(-360).max(360).step(1).onChange(function (value) { cc.rotation = { y: value, x: cc.rotation.x, z: cc.rotation.z }; });
-            rcontroller.z = f1.add(lin_params, 'RZ').min(-360).max(360).step(1).onChange(function (value) { cc.rotation = { z: value, y: cc.rotation.y, x: cc.rotation.x }; });
+            rcontroller.x = f1.add(lin_params, 'RX').min(-360).max(360).step(.01).onChange(function (value) { cc.rotation = { x: value, y: cc.rotation.y, z: cc.rotation.z }; });
+            rcontroller.y = f1.add(lin_params, 'RY').min(-360).max(360).step(.01).onChange(function (value) { cc.rotation = { y: value, x: cc.rotation.x, z: cc.rotation.z }; });
+            rcontroller.z = f1.add(lin_params, 'RZ').min(-360).max(360).step(.01).onChange(function (value) { cc.rotation = { z: value, y: cc.rotation.y, x: cc.rotation.x }; });
 
             var rf = gui.addFolder("RadialCloner");
             rf.add(rad_params, 'count').min(0).max(50).step(1).onChange(function (value) { rr.count = value; });
@@ -182,7 +193,8 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
 
             var re = gui.addFolder("RandomEffector");
             re.add(rand_params, 'strength').min(0).max(1).step(.02).onChange(function (value) { reff.strength = value; reff.updateClients() });
-            f1 = re.addFolder('Random-Position');
+            re.add(rand_params,'seed').min(1).max(1000).step(1).onChange(function (value) {reff.seed=value;reff.updateClients() });
+           f1 = re.addFolder('Random-Position');
             rpcontroller.x = f1.add(rand_params, 'PX').min(-20).max(20).step(1).onChange(function (value) { reff.position = { x: rpcontroller.x.getValue(), y: rpcontroller.y.getValue(), z: rpcontroller.z.getValue() }; reff.updateClients() });
             rpcontroller.y = f1.add(rand_params, 'PY').min(-20).max(20).step(1).onChange(function (value) { reff.position = { x: rpcontroller.x.getValue(), y: rpcontroller.y.getValue(), z: rpcontroller.z.getValue() }; reff.updateClients() });
             rpcontroller.z = f1.add(rand_params, 'PZ').min(-20).max(20).step(1).onChange(function (value) { reff.position = { x: rpcontroller.x.getValue(), y: rpcontroller.y.getValue(), z: rpcontroller.z.getValue() }; reff.updateClients() });
@@ -221,7 +233,7 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
             rrcontroller.x = f1.add(rand_params, 'RX').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
             rrcontroller.y = f1.add(rand_params, 'RY').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
             rrcontroller.z = f1.add(rand_params, 'RZ').min(-360).max(360).step(1).onChange(function (value) {handleRotation(value) });
-            
+
             gui.add(ani_params,"animate").onChange(function (value) {
                 g_animate=value;
                 if(value==true) {
@@ -255,6 +267,7 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
             growth: lin_params.growth,
             useInstances: true
         }
+        
         var c = demo.createCube(1, BABYLON.Color3.FromHexString("#DAA520"));
         //var b=demo.createCube(.5,BABYLON.Color3.FromHexString("#5555FF"));
         var d = demo.createCylinder(.9, BABYLON.Color3.FromHexString("#55FFDC"));
@@ -273,6 +286,7 @@ cc.mode = value; let p = cc.position; let s = cc.scale; let r = cc.rotation;
         var rr = new BABYLONX.RadialCloner([bb, b2], demo.scene, rad_opts);
         cc.root.position.y = -11;
 
+ 
 
         var reff = new BABYLONX.RandomEffector();
         reff.position = { x: rand_params.PX, y: rand_params.PY, z: rand_params.PZ };

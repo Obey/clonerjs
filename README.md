@@ -24,9 +24,9 @@ Definitions:
 		RandomEffector: influences Scale/Position/Rotation of a clone with repeatable random values, controlled with an overall "strength" parameter. Not quite finished, but basically working.
 	</li>
 </ul><p> 
-<p>
+<h2>
 	Demos
-</p>
+</h2>
 <p>
 	<a href="http://johann.langhofer.net/clonerjs/cbasic.html" rel="external nofollow noopener noreferrer" target="_blank">Cloner Basic Scene.</a>
 </p>

@@ -23,7 +23,7 @@ Definitions:
 	<li>
 		RandomEffector: influences Scale/Position/Rotation of a clone with repeatable random values, controlled with an overall "strength" parameter. Not quite finished, but basically working.
 	</li>
-</ul><p> 
+</ul><p>  
 <h2>
 	Demos
 </h2>
@@ -39,6 +39,10 @@ Definitions:
 	<p>
 	<a href="http://www.babylonjs-playground.com/#1NYYEQ%237" rel="external nofollow noopener noreferrer" target="_blank">RadialCloner combined with MatrixCloner</a>
 	</p>
+<h2>
+	Getting started (coming soon)
+</h2>
 
 </p>
+
 

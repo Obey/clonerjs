@@ -1,4 +1,4 @@
-# clonerjs
+# ClonerSystem
 Babylon JS Cloner System (BCS)
  
 <p>

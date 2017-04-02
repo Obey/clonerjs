@@ -29,10 +29,16 @@ Definitions:
 </p>
 <p>
 	<a href="http://johann.langhofer.net/clonerjs/cbasic.html" rel="external nofollow noopener noreferrer" target="_blank">Cloner Basic Scene.</a>
-	<a href="http://www.babylonjs-playground.com/#1NYYEQ%235" rel="external nofollow noopener noreferrer" target="_blank">ObjectCloner</a>
-	<a href="http://www.babylonjs-playground.com/#1NYYEQ%236" rel="external nofollow noopener noreferrer" target="_blank">MatrixCloner</a>
-	<a href="http://www.babylonjs-playground.com/#1NYYEQ%237" rel="external nofollow noopener noreferrer" target="_blank">RadialCloner combined with MatrixCloner</a>
 </p>
+<p>
+	<a href="http://www.babylonjs-playground.com/#1NYYEQ%235" rel="external nofollow noopener noreferrer" target="_blank">ObjectCloner</a>
+	</p>
+	<p>
+	<a href="http://www.babylonjs-playground.com/#1NYYEQ%236" rel="external nofollow noopener noreferrer" target="_blank">MatrixCloner</a>
+	</p>
+	<p>
+	<a href="http://www.babylonjs-playground.com/#1NYYEQ%237" rel="external nofollow noopener noreferrer" target="_blank">RadialCloner combined with MatrixCloner</a>
+	</p>
 
 </p>
 

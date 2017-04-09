@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html>
+ 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Demotest4</title>
+    <!-- Babylon.js -->
+
+    <script src="lib/b3alpha.max.js"></script>
+    <script src="lib/babylon.objFileLoader.js"></script>
+    <script src="lib/babylon.marbleProceduralTexture.js"></script>
+    <script src="lib/dat.gui.min.js"></script>
+    <script src="src/babylonx.cloner.js"></script>
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px;
+            background-color: #333344;
+        }
+        
+        
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+        }
+        
+        .dg {
+            color: #00AA00;
+            text-shadow: none !important;
+        }
+    </style>
+</head>
+ 
+<body bgcolor="#333344" oncontextmenu="return false; ">
+    <canvas id="renderCanvas"></canvas>
+    <script>
+ 
+
+        var demo = new BABYLONX.Demoscene();
+         var assets = [];
+        var toLoad = [
+            { name: "colo", src: "assets/c4d/building/apartment/", file: "b1.obj" },
+        ];
+        var loader = new BABYLON.AssetsManager(demo.scene);
+        toLoad.forEach(function (obj) {
+            var img = loader.addMeshTask(obj.name, "", obj.src, obj.file);
+            img.onSuccess = function(t) {
+                assets[t.name] = t.loadedMeshes[0];
+            };
+        });
+        loader.onFinish = function (tasks) {
+            // Create meshes
+            
+
+            tasks.forEach(function (obj) {
+                var lm = obj.loadedMeshes;
+                assets[obj.name] = obj.loadedMeshes[0];
+            });
+            
+            let rg = new BABYLONX.RandomNumberGen({ min: 2, max:4, seed: 21 });
+            var obj = assets["colo"];
+            var lc4 = new BABYLONX.LinearCloner([obj], demo.scene, { useInstances:true,iModeRelative: true, count: rg, P: { x: 0, y: 2, z: 0 } });
+            var rc = new BABYLONX.RadialCloner([lc4], demo.scene, { startangle: 65, count: 50, radius: 15 });
+            let reff = new BABYLONX.RandomEffector();
+            reff.rotation = { x: 1, y: 10, z: 1 };
+            reff.position = { x: 5, y: .2, z: .5 };
+            rc.addEffector(reff, 1);
+            reff.strength = 1;
+            reff.updateClients();
+            
+            
+        }
+        loader.load();
+
+    </script>
+</body>
+
+
+
+</html>

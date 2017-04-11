@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html>
+ 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>RadialCloner</title>
+    <!-- Babylon.js -->
+
+    <script src="lib/b3alpha.max.js"></script>
+    <script src="lib/babylon.objFileLoader.js"></script>
+    <script src="lib/babylon.marbleProceduralTexture.js"></script>
+    <script src="lib/babylon.skyMaterial.js"></script>
+    <script src="lib/Babylonx.ShaderBuilder.js"></script>
+    <script src="lib/dat.gui.min.js"></script>
+    <script src="src/babylonx.cloner.js"></script>
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px;
+            background-color: #333344;
+        }
+        
+        
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+        }
+        
+        .dg {
+            color: #00AA00;
+            text-shadow: none !important;
+        }
+    </style>
+</head>
+ 
+<body bgcolor="#333344" oncontextmenu="return false; ">
+    <div id="vertexDiv"></div>
+    <div id="fragmentDiv"></div>
+
+    <canvas id="renderCanvas"></canvas>
+    <script>
+
+        //helper for demonstration purpose only
+        //normally you would create your own scene an objects here
+        BABYLONX.ShaderBuilder.InitializeEngine();
+        var demo = new BABYLONX.Demoscene();
+        var sphere = BABYLON.Mesh.CreateBox('sphere1', 1, demo.scene);
+        sphere.material = new BABYLONX.ShaderBuilder()
+			.Map({ path: 'textures/NormalMap.png' })
+			.InLine('vec3 nrm1 = vec3(normalize(nrm-(normalize(  result.xyz  )*2.0-1.)*0.5));')
+			.Solid({ b: .3 })
+			.Light({ phonge: 1, normal: 'nrm1', direction: 'camera' })
+		.BuildMaterial(demo.scene);
+
+        let rg = new BABYLONX.RandomNumberGen({ min: 3, max: 6, seed: 21 });
+        var lc4 = new BABYLONX.LinearCloner([sphere], demo.scene, { useInstances: false, iModeRelative: true, count: rg, P: { x: 0, y: 1, z: 0 } });
+        var rc = new BABYLONX.RadialCloner([lc4], demo.scene, { endangle: 120, count: 20, radius: 9 });
+
+
+
+        //var cube1 = demo.createCube({ w: 5, h: 5, d: 5 }, "#DCDCDC");
+        var frame = 0;
+        demo.scene.registerBeforeRender(function () {
+            frame++;
+            new BABYLONX.ShaderMaterialHelper().SetUniforms(
+                  demo.scene.meshes,
+                  demo.camera.position,
+                  demo.camera.target,
+                   { x: 0, y: 0 },
+                   { x: 100, y: 100 },
+              frame);
+          });
+
+
+
+    </script>
+</body>
+
+
+
+</html>

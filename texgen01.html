@@ -1,0 +1,397 @@
+﻿<!DOCTYPE html>
+<html>
+ 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>TexGen</title>
+    <!-- Babylon.js -->
+    <script src="lib/dat.gui.min.js"></script>
+    <script src="lib/babylon.js"></script>
+    <script src="lib/Babylonx.ShaderBuilder.js"></script>
+    <script src="lib/sobel.js"></script>
+    <script src="src/babylonx.cloner.js"></script>
+    
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px;
+            background-color: #333344;
+        }
+        
+        
+         #previewCanvas {
+            position: absolute;
+            left: 50px;
+            top: 50px;
+
+            width: 250px;
+            height: 250px;
+            padding: 0px;
+        }
+       #renderCanvas {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+        }
+        
+        .dg {
+            color: #00AA00;
+            text-shadow: none !important;
+        }
+    </style>
+</head>
+ 
+<body bgcolor="#333344" oncontextmenu="return false; ">
+    <div id="dummy"></div>
+    <canvas id="previewCanvas"></canvas>
+     <div id="vertexDiv"></div>
+    <div id="fragmentDiv"></div>
+   
+    <canvas id="renderCanvas"></canvas>
+    <script>
+
+        var pcanvas = document.getElementById("previewCanvas");
+        var ctx = pcanvas.getContext("2d");
+
+        var texgen = new BABYLONX.TexGen();
+        var shaderparams={stepx:0.005,stepy:0.005,invR:false,invG:false,invB:false,invH:false,iR:1.0,iG:1.0,iB:1.0,iH:1.0,filter:true,fSobel:1,level:1,strength:1,dz:100,level:7,strength:.5,filterdz:500.0}
+
+        function createPattern(ctx, options) {
+            texgen.createStraightPattern(ctx, options);
+            var sobelfunc = function () {
+                var imageData = ctx.getImageData(0, 0, pcanvas.width, pcanvas.height);
+                var sobelData = Sobel(imageData);
+                var sobelImageData = sobelData.toImageData();
+                ctx.putImageData(sobelImageData, 0, 0);
+            }
+
+        }
+        createPattern(ctx, { brick_gradient: 1 });
+ 
+        var buildCubeMesh = function (scene, sx, sy, sz, uvsx, uvsy, uvsxmirror,uvsymirror) {
+
+            var mesh = new BABYLON.Mesh('resource_cube', scene);
+            var uvsizeX = uvsxmirror ? uvsx : 0;
+            var uvsizeX0 = uvsxmirror ? 0 : uvsx;
+            //var uvsizeY0 = uvsymirror ? uvsy : 0;
+            var uvsizeY = 1;//uvsy;//uvsymirror ? 0 : uvsy;
+            // loop through steps and fill arrays along the way
+            var positions = [
+    sx * 1, sy * -1, sz * 1,
+    sx * 1, sy * 1, sz * 1,
+   sx * -1, sy * 1, sz * 1,
+    sx * -1, sy * -1, sz * 1,
+    sx * 1, sy * -1, sz * -1,
+    sx * 1, sy * 1, sz * -1,
+    sx * 1, sy * 1, sz * 1,
+    sx * 1, sy * -1, sz * 1,
+    sx * -1, sy * -1, sz * -1,
+    sx * -1, sy * 1, sz * -1,
+    sx * 1, sy * 1, sz * -1,
+    sx * 1, sy * -1, sz * -1,
+    sx * -1, sy * -1, sz * 1,
+    sx * -1, sy * 1, sz * 1,
+    sx * -1, sy * 1, sz * -1,
+    sx * -1, sy * -1, sz * -1,
+    sx * 1, sy * 1, sz * 1,
+    sx * 1, sy * 1, sz * -1,
+    sx * -1, sy * 1, sz * -1,
+    sx * -1, sy * 1, sz * 1,
+    sx * 1, sy * -1, sz * -1,
+    sx * 1, sy * -1, sz * 1,
+    sx * -1, sy * -1, sz * 1,
+    sx * -1, sy * -1, sz * -1,
+            ];
+            var uv = [
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+            ];
+            var indices = [
+    23, 22, 20,
+    22, 21, 20,
+    19, 18, 16,
+    18, 17, 16,
+    15, 14, 12,
+    14, 13, 12,
+    11, 10, 8,
+    10, 9, 8,
+    7, 6, 4,
+    6, 5, 4,
+    3, 2, 0,
+    2, 1, 0,
+            ];
+
+            // build mesh based on arrays
+            mesh.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions, false);
+            mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uv, false);
+            mesh.setIndices(indices);
+            mesh.convertToFlatShadedMesh();
+
+            return mesh;
+            /*
+         var buf = [];
+        var arraxu = box.getVerticesData(BABYLON.VertexBuffer.UVKind);
+        for (var i = 0; i < arraxu.length; i += 2) {
+            console.log(arraxu[i] + "," + arraxu[i + 1] + ",");
+        }
+        console.log("   ");
+        var arraxPos = box.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        for (var i = 0; i < arraxPos.length; i+=3) {
+            buf.push(arraxPos[i] + "," + arraxPos[i+1] + "," + arraxPos[i+2] + ",");
+        }
+        buf.forEach(function (v) {console.log(v) })
+        var arrayIx = box.getIndices();
+        console.log("   ");
+        for (var i = 0; i < arrayIx.length; i+=3) {
+            console.log(arrayIx[i] + " " + arrayIx[i + 1] + " " + arrayIx[i + 2] + ",");
+        }
+           */
+
+        }
+        var gui = new dat.GUI();
+        gui.add(texgen, "brick_gradient").name("gradient").min(1).max(10).step(1).onChange(function (value) { updateMaterial(pcanvas.toDataURL()) });
+        gui.addColor(texgen, 'brick_color').onChange(function (value) { updateMaterial(pcanvas.toDataURL()) });
+        gui.addColor(texgen, 'grout_color').onChange(function (value) { updateMaterial(pcanvas.toDataURL()) });
+        gui.addColor(texgen, 'gradient_color').onChange(function (value) { updateMaterial(pcanvas.toDataURL()) });
+        gui.add(shaderparams, 'stepx').min(0.001).max(0.01).step(0.001);
+        gui.add(shaderparams, 'stepy').min(0.001).max(0.01).step(0.001);
+        gui.add(shaderparams, 'invR').onChange(function (value) { shaderparams.iR=value?-1.0:1.0})
+        gui.add(shaderparams, 'invG').onChange(function (value) { shaderparams.iG = value ? -1.0 : 1.0 })
+        gui.add(shaderparams, 'invB').onChange(function (value) { shaderparams.iB = value ? -1.0 : 1.0 })
+        gui.add(shaderparams, 'invH').onChange(function (value) { shaderparams.iH = value ? -1.0 : 1.0 })
+        gui.add(shaderparams, 'filter').name("Sobel/Scharr").onChange(function (value) { shaderparams.fSobel = value ? 1.0 : 0.0 })
+        gui.add(shaderparams, 'level').min(4).max(10).step(.1).onChange(function (v) { shaderparams.filterdz = 1.0 / shaderparams.strength * (1.0 + Math.pow(2.0,v )); console.log(shaderparams.filterdz + " " + shaderparams.strength); });
+        gui.add(shaderparams, 'strength').min(.005).max(2).step(.005).onChange(function (v) { shaderparams.filterdz = 1.0 / v * (1.0 + Math.pow(2.0, shaderparams.level)); console.log(shaderparams.filterdz); });
+        shaderparams.filterdz = 1.0 / shaderparams.strength * (1.0 + Math.pow(2.0, shaderparams.level));
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true, { stencil: true });
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("Camera",-Math.PI/2, Math.PI / 2, 8, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+        camera.wheelPrecision = 12;
+        camera.radius = 18;
+        var light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+        light.groundColor = new BABYLON.Color3(.641, .641, .641);
+        //helper for demonstration purpose only
+        //normally you would create your own scene an objects here
+        BABYLONX.ShaderBuilder.InitializeEngine();
+        //var demo = new BABYLONX.Demoscene();
+        //var cyl = BABYLON.MeshBuilder.CreateCylinder('sphere1', { tessellation: 16, diameter: 2*Math.sqrt(2) }, scene);
+        var box = buildCubeMesh(scene, 1, 1,1,1,false,false);//    BABYLON.Mesh.CreateBox("cube", 2, scene);
+        var texture = new BABYLON.Texture("textures/floor.png", scene);
+
+        var updateMaterial = function (path) {
+            
+            console.log("updateMaterial")
+            var SB = new BABYLONX.ShaderBuilder()
+                .SetUniform('dyTxt', 'sampler2D')
+                .SetUniform('stepx', 'float')
+                .SetUniform('stepy', 'float')
+                .SetUniform('invR', 'float')
+                .SetUniform('invG', 'float')
+                .SetUniform('invB', 'float')
+                .SetUniform('invH', 'float')
+                .SetUniform('fSobel', 'float')
+                .SetUniform('filterdz', 'float')
+                
+                .Multi([
+                //BABYLONX.Helper() .Map({ index: 'dyTxt' }).Build(),
+                BABYLONX.Helper()
+                .Map({ index: 'dyTxt' })
+                .Map({ path: path, alpha: true }, 1.)
+.Effect({ pr: 'px*noise(pos*0.08+vec3(0.,time*0.01,0.))' })
+
+                    .InLine(`
+                float    invertR=invR;
+                float    invertG=invG;
+                float    invertB=invB;
+                float    invertH=invH;
+                float dz= filterdz;//500.;
+                //int type=1.-fSobel;
+                float type=fSobel;
+
+
+
+
+                vec2 step=vec2(stepx,stepy);//  vec2(0.01, 0.01);
+                vec2 vUv=vec2(vuv);
+			    vec2 tlv = vec2(vUv.x - step.x, vUv.y + step.y );
+			    vec2 lv  = vec2(vUv.x - step.x, vUv.y 		   );
+			    vec2 blv = vec2(vUv.x - step.x, vUv.y - step.y);
+			    vec2 tv  = vec2(vUv.x 		  , vUv.y + step.y );
+			    vec2 bv  = vec2(vUv.x 		  , vUv.y - step.y);
+			    vec2 trv = vec2(vUv.x + step.x, vUv.y + step.y );
+			    vec2 rv  = vec2(vUv.x + step.x, vUv.y 		   );
+			    vec2 brv = vec2(vUv.x + step.x, vUv.y - step.y);
+			    tlv = vec2(tlv.x >= 0.0 ? tlv.x : (1.0 + tlv.x), 	tlv.y >= 0.0	? tlv.y : (1.0  + tlv.y));
+			    tlv = vec2(tlv.x < 1.0  ? tlv.x : (tlv.x - 1.0 ), 	tlv.y < 1.0   	? tlv.y : (tlv.y - 1.0 ));
+			    lv  = vec2( lv.x >= 0.0 ?  lv.x : (1.0 + lv.x),  	lv.y  >= 0.0 	?  lv.y : (1.0  +  lv.y));
+			    lv  = vec2( lv.x < 1.0  ?  lv.x : ( lv.x - 1.0 ),   lv.y  < 1.0  	?  lv.y : ( lv.y - 1.0 ));
+		        blv = vec2(blv.x >= 0.0 ? blv.x : (1.0 + blv.x), 	blv.y >= 0.0 	? blv.y : (1.0  + blv.y));
+			    blv = vec2(blv.x < 1.0  ? blv.x : (blv.x - 1.0 ), 	blv.y < 1.0 	? blv.y : (blv.y - 1.0 ));
+			    tv  = vec2( tv.x >= 0.0 ?  tv.x : (1.0 + tv.x),  	tv.y  >= 0.0 	?  tv.y : (1.0  +  tv.y));
+			    tv  = vec2( tv.x < 1.0  ?  tv.x : ( tv.x - 1.0 ),   tv.y  < 1.0 	?  tv.y : ( tv.y - 1.0 ));
+			    bv  = vec2( bv.x >= 0.0 ?  bv.x : (1.0 + bv.x),  	bv.y  >= 0.0 	?  bv.y : (1.0  +  bv.y));
+			    bv  = vec2( bv.x < 1.0  ?  bv.x : ( bv.x - 1.0 ),   bv.y  < 1.0 	?  bv.y : ( bv.y - 1.0 ));
+			    trv = vec2(trv.x >= 0.0 ? trv.x : (1.0 + trv.x), 	trv.y >= 0.0 	? trv.y : (1.0  + trv.y));
+			    trv = vec2(trv.x < 1.0  ? trv.x : (trv.x - 1.0 ), 	trv.y < 1.0   	? trv.y : (trv.y - 1.0 ));
+			    rv  = vec2( rv.x >= 0.0 ?  rv.x : (1.0 + rv.x),  	rv.y  >= 0.0 	?  rv.y : (1.0  +  rv.y));
+			    rv  = vec2( rv.x < 1.0  ?  rv.x : ( rv.x - 1.0 ),   rv.y  < 1.0   	?  rv.y : ( rv.y - 1.0 ));
+			    brv = vec2(brv.x >= 0.0 ? brv.x : (1.0 + brv.x), 	brv.y >= 0.0 	? brv.y : (1.0  + brv.y));
+			    brv = vec2(brv.x < 1.0  ? brv.x : (brv.x - 1.0 ), 	brv.y < 1.0   	? brv.y : (brv.y - 1.0 ));
+
+			    float tl = abs(texture2D(txtRef_0, tlv).r);
+			    float l  = abs(texture2D(txtRef_0, lv).r);
+			    float bl = abs(texture2D(txtRef_0, blv).r);
+			    float t  = abs(texture2D(txtRef_0, tv).r);
+			    float b  = abs(texture2D(txtRef_0, bv).r);
+			    float tr = abs(texture2D(txtRef_0, trv).r);
+			    float r  = abs(texture2D(txtRef_0, rv).r);
+			    float br = abs(texture2D(txtRef_0, brv).r);
+		       float dx = 0.0, dy = 0.0;
+		       //if(type == 0){	// Sobel
+		       if(type > 0.5) {	// Sobel
+				    dx = tl +l*2.0 +bl -tr -r*2.0 -br;
+				    dy = tl + t*2.0 + tr - bl - b*2.0 - br;
+		       }
+		       else{				// Scharr
+				    dx = tl*3.0 + l*10.0 + bl*3.0 - tr*3.0 - r*10.0 - br*3.0;
+				    dy = tl*3.0 + t*10.0 + tr*3.0 - bl*3.0 - b*10.0 - br*3.0;
+		       }
+			    vec4 normal = vec4(normalize(vec3(dx * invertR * invertH * 255.0, dy * invertG * invertH * 255.0, dz)), texture2D(txtRef_0, vUv).a);
+                        vec4 res=vec4(normal.xyz * 0.5 +0.5, 1.0);
+                        vec3 nrm1 = vec3(normalize(nrm-(normalize(res.xyz) *2.0-1.) *0.5));
+			    //result = vec4(normal.xy * 0.5 +0.5, normal.zw);
+                vec4 specular = vec4(normal.xy * 0.5 +0.5, normal.zw);
+
+                //INTERESTING Blood Effect!!!
+                //float n1=noise(pos*0.08+vec3(0., time, 0.));
+                //float n2=noise(pos*0.08+vec3(0., time+.1, 0.));
+                //vec4 textureColor =texture2D(txtRef_0, vec2(vuv.x*n1,vuv.y*n2));
+
+    //patterns
+   vec2 st=vuv;
+    st*=10.;
+    vec2 ipos = floor(st);  // integer
+    vec2 fpos = fract(st);  // fraction
+    vec4 textureColor2= vec4(vec3(rand(ipos)*2.), 1.0);
+    /*
+    //truchetPattern++++++++++++++
+    vec2 _st=fpos;
+    float _index=rand(ipos);
+    _index = fract(((_index-0.5) *2.0));
+    if (_index > 0.75) {
+        _st = vec2(1.0) -_st;
+    } else if (_index > 0.5) {
+        _st = vec2(1.0-_st.x, _st.y);
+    } else if (_index > 0.25) {
+        _st = 1.0-vec2(1.0-_st.x, _st.y);
+    }
+    vec2 tile = _st;
+    float col=smoothstep(tile.x-0.3, tile.x, tile.y) -smoothstep(tile.x, tile.x+0.3, tile.y);
+    vec4 textureColor2= vec4(vec3(col), 1.0);
+   //truchetPattern----------------------
+   */
+
+                vec4 textureColor =texture2D(txtRef_0,vuv);
+                textureColor.a = 1.;
+
+
+                result= clamp(2.*textureColor2*textureColor*specular, 0.0, 1.);
+
+                    `)
+                    //.Reference(1)
+                    //.White(1, BABYLONX.Helper().Map({ path: path }).Build())
+                    //.Green(1, BABYLONX.Helper().Map({ path: path }).Build())
+                    //.Blue(1, BABYLONX.Helper().Map({ path: path }).Build())
+                    //.Solid({r:.3,g:.15,b:.03})
+                    .Light({ phonge: .025195, specular: 15.5, normal: 'nrm1', direction: 'camera' })
+
+                    //vec3 nrm1 = vec3(normalize(nrm-(normalize(  result.xyz  )*2.0-1.)*0.5));')
+                    //'vec3 color = texture2D(txtRef_0,vuv).grb; result =  vec4(color,1.0);')// texture2D(txtRef_0,vuv.yx);')//vec4(vuv.x,.2,vuv.y,1.);')
+
+                    .Light({ phonge: 1, specular: 1.0, normal: BABYLONX.Normals.Flat, direction: 'nrm1' })
+                    .Build(),
+            ]);
+            var para = document.createElement("P");
+            var t = document.createTextNode(SB.Body);
+            para.appendChild(t);
+            console.log(SB.Body);
+            document.body.appendChild(para)
+            box.material = SB.BuildMaterial(scene);
+                
+        }
+        //updateMaterial(pcanvas.toDataURL());//'textures/stoneN.png');
+        updateMaterial('textures/floor.png');
+
+        var genClones = function () {
+            let rg = new BABYLONX.RandomNumberGen({ min: 3, max: 6, seed: 21 });
+            var lc4 = new BABYLONX.LinearCloner([sphere], scene, { useInstances: false, iModeRelative: true, count: rg, P: { x: 0, y: 1, z: 0 } });
+            var rc = new BABYLONX.RadialCloner([lc4], scene, { endangle: 120, count: 20, radius: 9 });
+            return rc;
+        }
+        //var rc=genClones();
+
+
+        //var cube1 = demo.createCube({ w: 5, h: 5, d: 5 }, "#DCDCDC");
+        var frame = 0;
+        scene.registerBeforeRender(function () {
+            frame++;
+            //sphere.rotation.y += 0.02;
+            //rc.root.rotation.y += .01;
+                new BABYLONX.ShaderMaterialHelper().SetUniforms(
+                      scene.meshes,
+                      camera.position,
+                      camera.target,
+                       { x: 0, y: 0 },
+                       { x: 100, y: 100 },
+                  frame);
+                box.material.setTexture('dyTxt', texture);
+                box.material.setFloat('stepx', shaderparams.stepx);
+                box.material.setFloat('stepy', shaderparams.stepy);
+                box.material.setFloat('invR', shaderparams.iR);
+                box.material.setFloat('invG', shaderparams.iG);
+                box.material.setFloat('invB', shaderparams.iB);
+                box.material.setFloat('invH', shaderparams.iH);
+                box.material.setFloat('fSobel', shaderparams.fSobel);
+                box.material.setFloat('filterdz', shaderparams.filterdz);
+                box.material.setFloat('time', frame*.001);
+        });
+          
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+    </script>
+</body>
+
+
+
+</html>

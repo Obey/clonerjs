@@ -1,0 +1,1349 @@
+﻿<!DOCTYPE html>
+<html>
+ 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>TexGen</title>
+    <!-- Babylon.js -->
+    <script src="lib/dat.gui.min.js"></script>
+    <script src="lib/babylon.js"></script>
+    <script src="lib/babylon.objFileLoader.js"></script>
+    <script src="lib/Babylonx.ShaderBuilder.js"></script>
+    <script src="lib/noise.js"></script>
+    <script src="src/babylonx.cloner.js"></script>
+    
+    <style>
+        html,
+        body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px;
+            background-color: #333344;
+        }
+        
+          #patternCanvas {
+              visibility: hidden;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+
+            width: 250px;
+            height: 250px;
+            padding: 0px;
+        }
+                 #textilesCanvas {
+             
+            position: absolute;
+            left: 0px;
+            top: 0px;
+
+            width: 64px;
+            height: 64px;
+            padding: 0px;
+        }
+
+         #noiseCanvas {
+              visibility: hidden;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+
+            width: 250px;
+            height: 250px;
+            padding: 0px;
+        }
+       #renderCanvas {
+            width: 100%;
+            height: 100%;
+            padding: 0px;
+        }
+        
+        .dg {
+            color: #00AA00;
+            text-shadow: none !important;
+        }
+    </style>
+</head>
+ 
+<body bgcolor="#333344" oncontextmenu="return false; ">
+    <div id="dummy"></div>
+    <canvas id="noiseCanvas" width="250" height="250"></canvas>
+    <canvas id="patternCanvas" width="250" height="250"></canvas>
+    <canvas id="textilesCanvas" width="64" height="64"></canvas>
+     <div id="vertexDiv"></div>
+    <div id="fragmentDiv"></div>
+   
+    <canvas id="renderCanvas"></canvas>
+    <script>
+
+        var noiseCanvas = document.getElementById("noiseCanvas");
+        var textilesCanvas = document.getElementById("textilesCanvas");
+        console.log("X:" + noiseCanvas.width)
+        console.log("X:" + noiseCanvas.height)
+        var buildCubeMesh = function (scene, sx, sy, sz, uvsx, uvsy, uvsxmirror, uvsymirror) {
+
+            var mesh = new BABYLON.Mesh('resource_cube', scene);
+            var uvsizeX = uvsxmirror ? uvsx : 0;
+            var uvsizeX0 = uvsxmirror ? 0 : uvsx;
+            //var uvsizeY0 = uvsymirror ? uvsy : 0;
+            var uvsizeY = 1;//uvsy;//uvsymirror ? 0 : uvsy;
+            // loop through steps and fill arrays along the way
+            var positions = [
+    sx * 1, sy * -1, sz * 1,
+    sx * 1, sy * 1, sz * 1,
+   sx * -1, sy * 1, sz * 1,
+    sx * -1, sy * -1, sz * 1,
+    sx * 1, sy * -1, sz * -1,
+    sx * 1, sy * 1, sz * -1,
+    sx * 1, sy * 1, sz * 1,
+    sx * 1, sy * -1, sz * 1,
+    sx * -1, sy * -1, sz * -1,
+    sx * -1, sy * 1, sz * -1,
+    sx * 1, sy * 1, sz * -1,
+    sx * 1, sy * -1, sz * -1,
+    sx * -1, sy * -1, sz * 1,
+    sx * -1, sy * 1, sz * 1,
+    sx * -1, sy * 1, sz * -1,
+    sx * -1, sy * -1, sz * -1,
+    sx * 1, sy * 1, sz * 1,
+    sx * 1, sy * 1, sz * -1,
+    sx * -1, sy * 1, sz * -1,
+    sx * -1, sy * 1, sz * 1,
+    sx * 1, sy * -1, sz * -1,
+    sx * 1, sy * -1, sz * 1,
+    sx * -1, sy * -1, sz * 1,
+    sx * -1, sy * -1, sz * -1,
+            ];
+            var uv = [
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+    uvsizeX, 0,
+    uvsizeX, uvsizeY,
+    uvsizeX0, uvsizeY,
+    uvsizeX0, 0,
+            ];
+            var indices = [
+    23, 22, 20,
+    22, 21, 20,
+    19, 18, 16,
+    18, 17, 16,
+    15, 14, 12,
+    14, 13, 12,
+    11, 10, 8,
+    10, 9, 8,
+    7, 6, 4,
+    6, 5, 4,
+    3, 2, 0,
+    2, 1, 0,
+            ];
+
+            // build mesh based on arrays
+            mesh.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions, false);
+            mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uv, false);
+            mesh.setIndices(indices);
+            mesh.convertToFlatShadedMesh();
+
+            return mesh;
+            /*
+         var buf = [];
+        var arraxu = box.getVerticesData(BABYLON.VertexBuffer.UVKind);
+        for (var i = 0; i < arraxu.length; i += 2) {
+            console.log(arraxu[i] + "," + arraxu[i + 1] + ",");
+        }
+        console.log("   ");
+        var arraxPos = box.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        for (var i = 0; i < arraxPos.length; i+=3) {
+            buf.push(arraxPos[i] + "," + arraxPos[i+1] + "," + arraxPos[i+2] + ",");
+        }
+        buf.forEach(function (v) {console.log(v) })
+        var arrayIx = box.getIndices();
+        console.log("   ");
+        for (var i = 0; i < arrayIx.length; i+=3) {
+            console.log(arrayIx[i] + " " + arrayIx[i + 1] + " " + arrayIx[i + 2] + ",");
+        }
+           */
+
+        }
+        //var ctx = noiseCanvas.getContext("2d");
+        //var ctxPattern = patternCanvas.getContext("2d");
+
+        var texgen = new BABYLONX.TexGen();
+        //texgen.createTextilesPattern(textilesCanvas, 1, 3, 64, 64, 1, 6, 1, 0, 2, 1, true, { r: 230, g: 215, b: 195 }, { r: 0, g: 0, b: 0 });
+        var noisegen = new BABYLONX.NoiseGen();
+        var shaderparams={stepx:0.005,stepy:0.005,invR:false,invG:false,balance:1.0,invH:false,iR:1.0,iG:1.0,iB:1.0,iH:1.0,filter:true,fSobel:1,level:1,strength:1,dz:100,level:7,strength:.5,filterdz:500.0}
+        function createPattern(ctx, options) {
+            //texgen.createStraightPattern(ctx, options);
+            texgen.createPattern(ctx, options);
+            /*
+            var sobelfunc = function () {
+                var imageData = ctx.getImageData(0, 0, noiseCanvas.width, noiseCanvas.height);
+                var sobelData = Sobel(imageData);
+                var sobelImageData = sobelData.toImageData();
+                ctx.putImageData(sobelImageData, 0, 0);
+            }
+            */
+
+        }
+        var source = { input: 1, image: false, pattern: false, noise: true };
+        var presets = {
+
+            "preset": "preset9",
+            "remembered": {
+                "Default": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 3,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#c0dec9",
+                        "color2": "#282226",
+                        "octaves": 6,
+                        "persistence": 0.9,
+                        "scale": 36.3,
+                        "seed": 1,
+                        "percentage": 0.6,
+                        "type": 2
+                    }
+                },
+                "preset1": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#c0dec9",
+                        "color2": "#282226",
+                        "octaves": 1,
+                        "persistence": 0.9,
+                        "scale": 129.8,
+                        "seed": 1,
+                        "percentage": 0.7000000000000001,
+                        "type": 1
+                    }
+                },
+                "preset2": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#64ff92",
+                        "color2": "#152d00",
+                        "octaves": 2,
+                        "persistence": 0.9,
+                        "scale": 189.3,
+                        "seed": 4,
+                        "percentage": 0.9,
+                        "type": 0
+                    }
+                },
+                "preset3": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#000000",
+                        "color2": "#ff2f2f",
+                        "octaves": 7,
+                        "persistence": 0.9,
+                        "scale": 10.8,
+                        "seed": 10,
+                        "percentage": 0.9,
+                        "type": 0
+                    }
+                },
+                "preset4": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#1b1b1b",
+                        "color2": "#d7a326",
+                        "octaves": 7,
+                        "persistence": 0.9,
+                        "scale": 10.8,
+                        "seed": 10,
+                        "percentage": 0.9,
+                        "type": 2
+                    }
+                },
+                "preset5": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#201f20",
+                        "color2": "#45d726",
+                        "octaves": 8,
+                        "persistence": 0.1,
+                        "scale": 10.8,
+                        "seed": 8,
+                        "percentage": 0.9,
+                        "type": 1
+                    }
+                },
+                "preset6": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#201f20",
+                        "color2": "#45d726",
+                        "octaves": 2,
+                        "persistence": 0.1,
+                        "scale": 140.6,
+                        "seed": 11,
+                        "percentage": 0.1,
+                        "type": 0
+                    }
+                },
+                "preset7": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#072d16",
+                        "color2": "#fff5d4",
+                        "octaves": 1,
+                        "persistence": 0.1,
+                        "scale": 243.4,
+                        "seed": 6,
+                        "percentage": 0.9,
+                        "type": 1
+                    }
+                },
+                "preset8": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#c0dec9",
+                        "color2": "#282226",
+                        "octaves": 6,
+                        "persistence": 0.9,
+                        "scale": 167.64000000000001,
+                        "seed": 1,
+                        "percentage": 0.01,
+                        "type": 2
+                    }
+                },
+                "preset9": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#c9cfcf",
+                        "color2": "#152d00",
+                        "octaves": 1,
+                        "persistence": 0.6000000000000001,
+                        "scale": 10.8,
+                        "seed": 4,
+                        "percentage": 1.35,
+                        "type": 1
+                    }
+                },
+                "preset10": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#000000",
+                        "color2": "#ff2f2f",
+                        "octaves": 3,
+                        "persistence": 0.9,
+                        "scale": 135.19,
+                        "seed": 8,
+                        "percentage": 0.48,
+                        "type": 2
+                    }
+                },
+                "preset11": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#fff7d4",
+                        "color2": "#09693c",
+                        "octaves": 5,
+                        "persistence": 0.9,
+                        "scale": 1,
+                        "seed": 10,
+                        "percentage": 0.8300000000000001,
+                        "type": 1
+                    }
+                },
+                "preset12": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#f7f3e2",
+                        "color2": "#692509",
+                        "octaves": 16,
+                        "persistence": 0.7000000000000001,
+                        "scale": 1,
+                        "seed": 12,
+                        "percentage": 0.89,
+                        "type": 0
+                    }
+                },
+                "preset13": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#ebcf55",
+                        "color2": "#69094c",
+                        "octaves": 20,
+                        "persistence": 0.1,
+                        "scale": 102.74000000000001,
+                        "seed": 6,
+                        "percentage": 0.07,
+                        "type": 2
+
+                    }
+                },
+                "preset14": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#000000",
+                        "color2": "#c82b2b",
+                        "octaves": 3,
+                        "persistence": 0.7000000000000001,
+                        "scale": 14.65,
+                        "seed": 1,
+                        "percentage": 1.1300000000000001,
+                        "type": 1
+                    }
+                },
+                "preset15": {
+                    "0": {
+                        "input": 1
+                    },
+                    "1": {
+                        "number": 0,
+                        "brick_gradient": 1,
+                        "brick_color": "#b90000",
+                        "grout_color": "#e4ff66",
+                        "gradient_color": "#000000",
+                        "width": 32,
+                        "height": 32,
+                        "numWidth": 8,
+                        "numHeight": 8
+                    },
+                    "2": {
+                        "stepx": 0.005,
+                        "stepy": 0.005,
+                        "invR": false,
+                        "invG": false,
+                        "balance": 1,
+                        "invH": false,
+                        "filter": true,
+                        "level": 7,
+                        "strength": 0.5
+                    },
+                    "3": {
+                        "color1": "#cda600",
+                        "color2": "#f7f0f0",
+                        "octaves": 6,
+                        "persistence": 0.4,
+                        "scale": 64.89,
+                        "seed": 11,
+                        "percentage": 1.9000000000000001,
+                        "type": 2
+                    }
+                }
+            },
+            "closed": false,
+            "folders": {
+                "Source": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                },
+                "Pattern": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                },
+                "Shader": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                },
+                "Noise": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                }
+            }
+
+
+        }
+
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true, { stencil: true });
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("Camera",-Math.PI/2-.08, Math.PI / 2-.015, 8, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+        camera.wheelPrecision = 12;
+        camera.radius = 18;
+        
+        var light = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+        light.groundColor = new BABYLON.Color3(.641, .641, .641);
+        var light0 = new BABYLON.PointLight("Omni0", new BABYLON.Vector3(1, 10, 1), scene);
+        light0.diffuse = new BABYLON.Color3(1, 0, 0);
+        light0.specular = new BABYLON.Color3(1, 1, 1);
+        //helper for demonstration purpose only
+        //normally you would create your own scene an objects here
+        BABYLONX.ShaderBuilder.InitializeEngine();
+        //var demo = new BABYLONX.Demoscene();
+        //var cyl = BABYLON.MeshBuilder.CreateCylinder('sphere1', { tessellation: 16, diameter: 2*Math.sqrt(2) }, scene);
+        var box = buildCubeMesh(scene, 2, 2,2,1,1,false,false);//    BABYLON.Mesh.CreateBox("cube", 2, scene);
+        box.position.x = -3;
+        var sph = new BABYLON.Mesh.CreateSphere("sph", 32, 4, scene);
+        sph.position.x = 3;
+        var gnd = BABYLON.Mesh.CreateGround('ground1', 10, 10, 1, scene);
+        gnd.position.y = -3;
+        //var texture = new BABYLON.Texture("textures/floor.png", scene);
+
+
+        var dynTex = new BABYLON.DynamicTexture("DynamicTexture", noiseCanvas, scene, false);
+        dynTex.hasAlpha = true;
+        var dynCtx = dynTex.getContext();
+        var dynTexPattern = new BABYLON.DynamicTexture("DynamicTexturePattern", patternCanvas, scene, false);
+        dynTexPattern.hasAlpha = true;
+        var dynCtxPattern = dynTexPattern.getContext();
+
+        var staticTex = new BABYLON.Texture("textures/floor.png", scene);
+        staticTex.hasAlpha = true;
+
+        createPattern(dynCtxPattern, { brick_gradient: 1 });
+
+        var loader = new BABYLON.AssetsManager(scene);
+        var desk = loader.addMeshTask("desk", "", "assets/c4d/womansittingphone/", "womansittingphone.obj");
+        var meshlist = [];
+        desk.onSuccess =  (task) => {
+            var meshes = task.loadedMeshes;
+            meshes[0].rotation.y = Math.PI;
+            meshes[0].bakeCurrentTransformIntoVertices();
+            //demo.assignMetalMaterial(meshes[0]);
+            meshlist.push(meshes[0]);
+
+
+
+            var singleShader = function (path) {
+                var SB = new BABYLONX.ShaderBuilder()
+                    .SetUniform('dyTxt', 'sampler2D')
+                    .SetUniform('stepx', 'float')
+                    .SetUniform('stepy', 'float')
+                    .SetUniform('invR', 'float')
+                    .SetUniform('invG', 'float')
+                    .SetUniform('balance', 'float')
+                    .SetUniform('invH', 'float')
+                    .SetUniform('fSobel', 'float')
+                    .SetUniform('filterdz', 'float')
+
+                    .Multi([
+                    BABYLONX.Helper()
+                        .Map({ index: 'dyTxt' })
+                        //.Map({ path: path, alpha: true }, 1.)
+                        .InLine(`
+                        float    invertR=invR;
+                        float    invertG=invG;
+
+                        float    invertH=invH;
+                        float dz= filterdz;//500.;
+                        //int type=1.-fSobel;
+                        float type=fSobel;
+
+
+
+
+                        vec2 step=vec2(stepx,stepy);//  vec2(0.01, 0.01);
+                        vec2 vUv=vec2(vuv);
+                        vec2 tlv = vec2(vUv.x - step.x, vUv.y + step.y );
+                        vec2 lv  = vec2(vUv.x - step.x, vUv.y 		   );
+                        vec2 blv = vec2(vUv.x - step.x, vUv.y - step.y);
+                        vec2 tv  = vec2(vUv.x 		  , vUv.y + step.y );
+                        vec2 bv  = vec2(vUv.x 		  , vUv.y - step.y);
+                        vec2 trv = vec2(vUv.x + step.x, vUv.y + step.y );
+                        vec2 rv  = vec2(vUv.x + step.x, vUv.y 		   );
+                        vec2 brv = vec2(vUv.x + step.x, vUv.y - step.y);
+                        tlv = vec2(tlv.x >= 0.0 ? tlv.x : (1.0 + tlv.x), 	tlv.y >= 0.0	? tlv.y : (1.0  + tlv.y));
+                        tlv = vec2(tlv.x < 1.0  ? tlv.x : (tlv.x - 1.0 ), 	tlv.y < 1.0   	? tlv.y : (tlv.y - 1.0 ));
+                        lv  = vec2( lv.x >= 0.0 ?  lv.x : (1.0 + lv.x),  	lv.y  >= 0.0 	?  lv.y : (1.0  +  lv.y));
+                        lv  = vec2( lv.x < 1.0  ?  lv.x : ( lv.x - 1.0 ),   lv.y  < 1.0  	?  lv.y : ( lv.y - 1.0 ));
+                        blv = vec2(blv.x >= 0.0 ? blv.x : (1.0 + blv.x), 	blv.y >= 0.0 	? blv.y : (1.0  + blv.y));
+                        blv = vec2(blv.x < 1.0  ? blv.x : (blv.x - 1.0 ), 	blv.y < 1.0 	? blv.y : (blv.y - 1.0 ));
+                        tv  = vec2( tv.x >= 0.0 ?  tv.x : (1.0 + tv.x),  	tv.y  >= 0.0 	?  tv.y : (1.0  +  tv.y));
+                        tv  = vec2( tv.x < 1.0  ?  tv.x : ( tv.x - 1.0 ),   tv.y  < 1.0 	?  tv.y : ( tv.y - 1.0 ));
+                        bv  = vec2( bv.x >= 0.0 ?  bv.x : (1.0 + bv.x),  	bv.y  >= 0.0 	?  bv.y : (1.0  +  bv.y));
+                        bv  = vec2( bv.x < 1.0  ?  bv.x : ( bv.x - 1.0 ),   bv.y  < 1.0 	?  bv.y : ( bv.y - 1.0 ));
+                        trv = vec2(trv.x >= 0.0 ? trv.x : (1.0 + trv.x), 	trv.y >= 0.0 	? trv.y : (1.0  + trv.y));
+                        trv = vec2(trv.x < 1.0  ? trv.x : (trv.x - 1.0 ), 	trv.y < 1.0   	? trv.y : (trv.y - 1.0 ));
+                        rv  = vec2( rv.x >= 0.0 ?  rv.x : (1.0 + rv.x),  	rv.y  >= 0.0 	?  rv.y : (1.0  +  rv.y));
+                        rv  = vec2( rv.x < 1.0  ?  rv.x : ( rv.x - 1.0 ),   rv.y  < 1.0   	?  rv.y : ( rv.y - 1.0 ));
+                        brv = vec2(brv.x >= 0.0 ? brv.x : (1.0 + brv.x), 	brv.y >= 0.0 	? brv.y : (1.0  + brv.y));
+                        brv = vec2(brv.x < 1.0  ? brv.x : (brv.x - 1.0 ), 	brv.y < 1.0   	? brv.y : (brv.y - 1.0 ));
+
+                        float tl = abs(texture2D(dyTxt, tlv).r);
+                        float l  = abs(texture2D(dyTxt, lv).r);
+                        float bl = abs(texture2D(dyTxt, blv).r);
+                        float t  = abs(texture2D(dyTxt, tv).r);
+                        float b  = abs(texture2D(dyTxt, bv).r);
+                        float tr = abs(texture2D(dyTxt, trv).r);
+                        float r  = abs(texture2D(dyTxt, rv).r);
+                        float br = abs(texture2D(dyTxt, brv).r);
+                        float dx = 0.0, dy = 0.0;
+                        //if(type == 0){	// Sobel
+                        if(type > 0.5) {	// Sobel
+	                        dx = tl +l*2.0 +bl -tr -r*2.0 -br;
+	                        dy = tl + t*2.0 + tr - bl - b*2.0 - br;
+                        }
+                        else{				// Scharr
+	                        dx = tl*3.0 + l*10.0 + bl*3.0 - tr*3.0 - r*10.0 - br*3.0;
+	                        dy = tl*3.0 + t*10.0 + tr*3.0 - bl*3.0 - b*10.0 - br*3.0;
+                        }
+                        vec4 normal = vec4(normalize(vec3(dx * invertR * invertH * 255.0, dy * invertG * invertH * 255.0, dz)), texture2D(dyTxt, vUv).a);
+                                vec4 res=vec4(normal.xyz * 0.5 +0.5, 1.0);
+                                vec3 nrm1 = vec3(normalize(nrm-(normalize(res.xyz) *2.0-1.) *0.5));
+                        //result = vec4(normal.xy * 0.5 +0.5, normal.zw);
+                        vec4 specular = vec4(normal.xy * 0.5 +0.5, normal.zw);
+
+
+                        vec4 textureColor =texture2D(dyTxt, vuv);
+                        textureColor.a = 1.;
+
+
+                        result= clamp(2.*textureColor*textureColor*specular, 0.0, 1.);
+                        //result= vec4(vec3(vuv.x,vuv.y,0.),1.);
+                            `)
+                        .Light({ phonge: .025195, specular: 15.5, normal: 'nrm1', direction: 'camera' })
+                            //.Light({ darkColorMode:true,specularPower: .01, phonge: 1., color: { r: 0.8, g: 0.8, b: 0.8, a: 1. }, specular: 1.0, normal: BABYLONX.Normals.Flat, direction: 'camera' })
+                            .Build(),
+                    ]);
+                return SB;
+
+            }
+            var multiShader = function (path, opacity1, opacity2) {
+                var SB = new BABYLONX.ShaderBuilder()
+                    .SetUniform('dyTxt', 'sampler2D')
+                    .SetUniform('stepx', 'float')
+                    .SetUniform('stepy', 'float')
+                    .SetUniform('invR', 'float')
+                    .SetUniform('invG', 'float')
+                    .SetUniform('balance', 'float')
+                    .SetUniform('invH', 'float')
+                    .SetUniform('fSobel', 'float')
+                    .SetUniform('filterdz', 'float')
+
+                    .Multi([
+                        {
+                            result: BABYLONX.Helper().Map({ path: path })
+                              .InLine`
+                          result=vec4((1.0-balance)*result.xyz,1.0);
+                          `
+                              .Build(), opacity: opacity1
+                        },
+                    {
+                        result: BABYLONX.Helper()
+
+                           .Map({ index: 'dyTxt' })
+                           .Map({ path: path, alpha: true }, 1.)
+                           .InLine(`
+                        float    invertR=invR;
+                        float    invertG=invG;
+
+                        float    invertH=invH;
+                        float dz= filterdz;//500.;
+                        //int type=1.-fSobel;
+                        float type=fSobel;
+
+
+
+
+                        vec2 step=vec2(stepx,stepy);//  vec2(0.01, 0.01);
+                        vec2 vUv=vec2(vuv);
+                        vec2 tlv = vec2(vUv.x - step.x, vUv.y + step.y );
+                        vec2 lv  = vec2(vUv.x - step.x, vUv.y 		   );
+                        vec2 blv = vec2(vUv.x - step.x, vUv.y - step.y);
+                        vec2 tv  = vec2(vUv.x 		  , vUv.y + step.y );
+                        vec2 bv  = vec2(vUv.x 		  , vUv.y - step.y);
+                        vec2 trv = vec2(vUv.x + step.x, vUv.y + step.y );
+                        vec2 rv  = vec2(vUv.x + step.x, vUv.y 		   );
+                        vec2 brv = vec2(vUv.x + step.x, vUv.y - step.y);
+                        tlv = vec2(tlv.x >= 0.0 ? tlv.x : (1.0 + tlv.x), 	tlv.y >= 0.0	? tlv.y : (1.0  + tlv.y));
+                        tlv = vec2(tlv.x < 1.0  ? tlv.x : (tlv.x - 1.0 ), 	tlv.y < 1.0   	? tlv.y : (tlv.y - 1.0 ));
+                        lv  = vec2( lv.x >= 0.0 ?  lv.x : (1.0 + lv.x),  	lv.y  >= 0.0 	?  lv.y : (1.0  +  lv.y));
+                        lv  = vec2( lv.x < 1.0  ?  lv.x : ( lv.x - 1.0 ),   lv.y  < 1.0  	?  lv.y : ( lv.y - 1.0 ));
+                        blv = vec2(blv.x >= 0.0 ? blv.x : (1.0 + blv.x), 	blv.y >= 0.0 	? blv.y : (1.0  + blv.y));
+                        blv = vec2(blv.x < 1.0  ? blv.x : (blv.x - 1.0 ), 	blv.y < 1.0 	? blv.y : (blv.y - 1.0 ));
+                        tv  = vec2( tv.x >= 0.0 ?  tv.x : (1.0 + tv.x),  	tv.y  >= 0.0 	?  tv.y : (1.0  +  tv.y));
+                        tv  = vec2( tv.x < 1.0  ?  tv.x : ( tv.x - 1.0 ),   tv.y  < 1.0 	?  tv.y : ( tv.y - 1.0 ));
+                        bv  = vec2( bv.x >= 0.0 ?  bv.x : (1.0 + bv.x),  	bv.y  >= 0.0 	?  bv.y : (1.0  +  bv.y));
+                        bv  = vec2( bv.x < 1.0  ?  bv.x : ( bv.x - 1.0 ),   bv.y  < 1.0 	?  bv.y : ( bv.y - 1.0 ));
+                        trv = vec2(trv.x >= 0.0 ? trv.x : (1.0 + trv.x), 	trv.y >= 0.0 	? trv.y : (1.0  + trv.y));
+                        trv = vec2(trv.x < 1.0  ? trv.x : (trv.x - 1.0 ), 	trv.y < 1.0   	? trv.y : (trv.y - 1.0 ));
+                        rv  = vec2( rv.x >= 0.0 ?  rv.x : (1.0 + rv.x),  	rv.y  >= 0.0 	?  rv.y : (1.0  +  rv.y));
+                        rv  = vec2( rv.x < 1.0  ?  rv.x : ( rv.x - 1.0 ),   rv.y  < 1.0   	?  rv.y : ( rv.y - 1.0 ));
+                        brv = vec2(brv.x >= 0.0 ? brv.x : (1.0 + brv.x), 	brv.y >= 0.0 	? brv.y : (1.0  + brv.y));
+                        brv = vec2(brv.x < 1.0  ? brv.x : (brv.x - 1.0 ), 	brv.y < 1.0   	? brv.y : (brv.y - 1.0 ));
+
+                        float tl = abs(texture2D(dyTxt, tlv).r);
+                        float l  = abs(texture2D(dyTxt, lv).r);
+                        float bl = abs(texture2D(dyTxt, blv).r);
+                        float t  = abs(texture2D(dyTxt, tv).r);
+                        float b  = abs(texture2D(dyTxt, bv).r);
+                        float tr = abs(texture2D(dyTxt, trv).r);
+                        float r  = abs(texture2D(dyTxt, rv).r);
+                        float br = abs(texture2D(dyTxt, brv).r);
+                        float dx = 0.0, dy = 0.0;
+                        //if(type == 0){	// Sobel
+                        if(type > 0.5) {	// Sobel
+	                        dx = tl +l*2.0 +bl -tr -r*2.0 -br;
+	                        dy = tl + t*2.0 + tr - bl - b*2.0 - br;
+                        }
+                        else{				// Scharr
+	                        dx = tl*3.0 + l*10.0 + bl*3.0 - tr*3.0 - r*10.0 - br*3.0;
+	                        dy = tl*3.0 + t*10.0 + tr*3.0 - bl*3.0 - b*10.0 - br*3.0;
+                        }
+                        vec4 normal = vec4(normalize(vec3(dx * invertR * invertH * 255.0, dy * invertG * invertH * 255.0, dz)), texture2D(dyTxt, vUv).a);
+                                vec4 res=vec4(normal.xyz * 0.5 +0.5, 1.0);
+                                vec3 nrm1 = vec3(normalize(nrm-(normalize(res.xyz) *2.0-1.) *0.5));
+                        //result = vec4(normal.xy * 0.5 +0.5, normal.zw);
+                        vec4 specular = vec4(normal.xy * 0.5 +0.5, normal.zw);
+
+
+                        vec4 textureColor =texture2D(dyTxt, vuv);
+                        textureColor.a = 1.;
+
+
+                        result= clamp(2.*textureColor*textureColor*specular*balance, 0.0, 1.);
+                        //result= vec4(vec3(vuv.x,vuv.y,0.),1.);
+                            `)
+                           .Light({ phonge: .025195, specular: 15.5, normal: 'nrm1', direction: 'camera' })
+                               //.Light({ darkColorMode:true,specularPower: .01, phonge: 1., color: { r: 0.8, g: 0.8, b: 0.8, a: 1. }, specular: 1.0, normal: BABYLONX.Normals.Flat, direction: 'camera' })
+                               .Build(), opacity: opacity2
+                    }
+                    ], false);
+                //console.log(SB.Body);
+
+                return SB;
+
+            }
+
+            var buildMaterialXXX = function (meshTexturePair) {
+                console.log("updateMaterial")
+                var path = meshTexturePair.tex;
+                var mesh = meshTexturePair.mesh;
+                var buildShader = function (tex) {
+
+                    var SB = new BABYLONX.ShaderBuilder()
+                        .SetUniform('dyTxt', 'sampler2D')
+                        .SetUniform('stepx', 'float')
+                        .SetUniform('stepy', 'float')
+                        .SetUniform('invR', 'float')
+                        .SetUniform('invG', 'float')
+                        .SetUniform('invB', 'float')
+                        .SetUniform('invH', 'float')
+                        .SetUniform('fSobel', 'float')
+                        .SetUniform('filterdz', 'float')
+
+                        .Multi([
+
+                        BABYLONX.Helper().Map({ path: path }).Build(),
+
+                        BABYLONX.Helper()
+                            .Map({ index: 'dyTxt' })
+                            .Map({ path: path, alpha: true }, 1.)
+                            .InLine(`
+                        float    invertR=invR;
+                        float    invertG=invG;
+
+                        float    invertH=invH;
+                        float dz= filterdz;//500.;
+                        //int type=1.-fSobel;
+                        float type=fSobel;
+
+
+
+
+                        vec2 step=vec2(stepx,stepy);//  vec2(0.01, 0.01);
+                        vec2 vUv=vec2(vuv);
+                        vec2 tlv = vec2(vUv.x - step.x, vUv.y + step.y );
+                        vec2 lv  = vec2(vUv.x - step.x, vUv.y 		   );
+                        vec2 blv = vec2(vUv.x - step.x, vUv.y - step.y);
+                        vec2 tv  = vec2(vUv.x 		  , vUv.y + step.y );
+                        vec2 bv  = vec2(vUv.x 		  , vUv.y - step.y);
+                        vec2 trv = vec2(vUv.x + step.x, vUv.y + step.y );
+                        vec2 rv  = vec2(vUv.x + step.x, vUv.y 		   );
+                        vec2 brv = vec2(vUv.x + step.x, vUv.y - step.y);
+                        tlv = vec2(tlv.x >= 0.0 ? tlv.x : (1.0 + tlv.x), 	tlv.y >= 0.0	? tlv.y : (1.0  + tlv.y));
+                        tlv = vec2(tlv.x < 1.0  ? tlv.x : (tlv.x - 1.0 ), 	tlv.y < 1.0   	? tlv.y : (tlv.y - 1.0 ));
+                        lv  = vec2( lv.x >= 0.0 ?  lv.x : (1.0 + lv.x),  	lv.y  >= 0.0 	?  lv.y : (1.0  +  lv.y));
+                        lv  = vec2( lv.x < 1.0  ?  lv.x : ( lv.x - 1.0 ),   lv.y  < 1.0  	?  lv.y : ( lv.y - 1.0 ));
+                        blv = vec2(blv.x >= 0.0 ? blv.x : (1.0 + blv.x), 	blv.y >= 0.0 	? blv.y : (1.0  + blv.y));
+                        blv = vec2(blv.x < 1.0  ? blv.x : (blv.x - 1.0 ), 	blv.y < 1.0 	? blv.y : (blv.y - 1.0 ));
+                        tv  = vec2( tv.x >= 0.0 ?  tv.x : (1.0 + tv.x),  	tv.y  >= 0.0 	?  tv.y : (1.0  +  tv.y));
+                        tv  = vec2( tv.x < 1.0  ?  tv.x : ( tv.x - 1.0 ),   tv.y  < 1.0 	?  tv.y : ( tv.y - 1.0 ));
+                        bv  = vec2( bv.x >= 0.0 ?  bv.x : (1.0 + bv.x),  	bv.y  >= 0.0 	?  bv.y : (1.0  +  bv.y));
+                        bv  = vec2( bv.x < 1.0  ?  bv.x : ( bv.x - 1.0 ),   bv.y  < 1.0 	?  bv.y : ( bv.y - 1.0 ));
+                        trv = vec2(trv.x >= 0.0 ? trv.x : (1.0 + trv.x), 	trv.y >= 0.0 	? trv.y : (1.0  + trv.y));
+                        trv = vec2(trv.x < 1.0  ? trv.x : (trv.x - 1.0 ), 	trv.y < 1.0   	? trv.y : (trv.y - 1.0 ));
+                        rv  = vec2( rv.x >= 0.0 ?  rv.x : (1.0 + rv.x),  	rv.y  >= 0.0 	?  rv.y : (1.0  +  rv.y));
+                        rv  = vec2( rv.x < 1.0  ?  rv.x : ( rv.x - 1.0 ),   rv.y  < 1.0   	?  rv.y : ( rv.y - 1.0 ));
+                        brv = vec2(brv.x >= 0.0 ? brv.x : (1.0 + brv.x), 	brv.y >= 0.0 	? brv.y : (1.0  + brv.y));
+                        brv = vec2(brv.x < 1.0  ? brv.x : (brv.x - 1.0 ), 	brv.y < 1.0   	? brv.y : (brv.y - 1.0 ));
+
+                        float tl = abs(texture2D(dyTxt, tlv).r);
+                        float l  = abs(texture2D(dyTxt, lv).r);
+                        float bl = abs(texture2D(dyTxt, blv).r);
+                        float t  = abs(texture2D(dyTxt, tv).r);
+                        float b  = abs(texture2D(dyTxt, bv).r);
+                        float tr = abs(texture2D(dyTxt, trv).r);
+                        float r  = abs(texture2D(dyTxt, rv).r);
+                        float br = abs(texture2D(dyTxt, brv).r);
+                        float dx = 0.0, dy = 0.0;
+                        //if(type == 0){	// Sobel
+                        if(type > 0.5) {	// Sobel
+	                        dx = tl +l*2.0 +bl -tr -r*2.0 -br;
+	                        dy = tl + t*2.0 + tr - bl - b*2.0 - br;
+                        }
+                        else{				// Scharr
+	                        dx = tl*3.0 + l*10.0 + bl*3.0 - tr*3.0 - r*10.0 - br*3.0;
+	                        dy = tl*3.0 + t*10.0 + tr*3.0 - bl*3.0 - b*10.0 - br*3.0;
+                        }
+                        vec4 normal = vec4(normalize(vec3(dx * invertR * invertH * 255.0, dy * invertG * invertH * 255.0, dz)), texture2D(dyTxt, vUv).a);
+                                vec4 res=vec4(normal.xyz * 0.5 +0.5, 1.0);
+                                vec3 nrm1 = vec3(normalize(nrm-(normalize(res.xyz) *2.0-1.) *0.5));
+                        //result = vec4(normal.xy * 0.5 +0.5, normal.zw);
+                        vec4 specular = vec4(normal.xy * 0.5 +0.5, normal.zw);
+
+
+                        vec4 textureColor =texture2D(dyTxt, vuv);
+                        textureColor.a = 1.;
+
+
+                        result= clamp(2.*textureColor*textureColor*specular, 0.0, 1.);
+                        //result= vec4(vec3(vuv.x,vuv.y,0.),1.);
+                            `)
+                            .Light({ phonge: .025195, specular: 15.5, normal: 'nrm1', direction: 'camera' })
+                                //.Light({ darkColorMode:true,specularPower: .01, phonge: 1., color: { r: 0.8, g: 0.8, b: 0.8, a: 1. }, specular: 1.0, normal: BABYLONX.Normals.Flat, direction: 'camera' })
+                                .Build(),
+                        ]);
+                    return SB;
+                }
+                //console.log(SB.Body);
+                //var SB = buildShader();
+                mesh.material = buildShader(path).BuildMaterial(scene);
+            }
+            //matList.forEach(function (m) { buildMaterial(m) })
+            //box.material = singleShader().BuildMaterial(scene);
+            box.material = multiShader('textures/floor.png', 1.0, 1.0).BuildMaterial(scene);
+            //box.material = singleShader().BuildMaterial(scene); //multiShader('textures/floor.png', 1.0, 1.0).BuildMaterial(scene);
+            sph.material = multiShader('textures/floor.png', 1.0, 1.0).BuildMaterial(scene);
+            gnd.material = multiShader('textures/floor.png', 1.0, 1.0).BuildMaterial(scene);
+
+            meshes[0].material = new BABYLON.StandardMaterial("std", scene);
+            var wtex = new BABYLON.Texture("textures/grass.jpg", scene);
+            var hdrTexture = new BABYLON.HDRCubeTexture("assets/roombwblur.hdr", scene, 512);
+            var metal = new BABYLON.PBRMaterial("xmetal", scene);
+            metal.reflectionTexture = hdrTexture;
+            metal.microSurface = 1;
+            metal.reflectivityColor = new BABYLON.Color3(0.9, 0.9, 0.9);
+            metal.albedoColor = new BABYLON.Color3(0.02, 0.02, 0.62);
+            metal.environmentIntensity = 0.7;
+            metal.cameraExposure = 0.66;
+            metal.cameraContrast = 1.66;
+            meshes[0].material = metal;
+           
+
+
+             //meshes[0].material.bumpTexture = wtex;
+           // meshes[0].material = multiShader('textures/stone.png', 1.0, 1.0).BuildMaterial(scene);
+            meshes[0].position.x = -3;
+            meshes[0].position.y = -2.2;
+            meshes[0].position.z = -1.4;
+
+            var us = sph.material.Uniforms;
+            //var ps = BABYLON.Effect.ShadersStore["ShaderBuilder_1PixelShader"];
+            //console.log(ps);
+            var genClones = function () {
+                let rg = new BABYLONX.RandomNumberGen({ min: 1, max: 1, seed: 21 });
+                var lc4 = new BABYLONX.LinearCloner([sph], scene, { useInstances: false, iModeRelative: true, count: rg, P: { x: 0, y: 4, z: 0 } });
+                var rc = new BABYLONX.RadialCloner([lc4], scene, { endangle: 270, count: 10, radius: 9 });
+                return rc;
+            }
+            //genClones();
+
+
+            var gui3 = new dat.GUI({ load: presets });
+            //var gui2 = new dat.GUI({ load: presets });
+
+            gui3.remember(source);
+
+            var fSource = gui3.addFolder("Source");
+            fSource.add(source, 'input').name('Image/Noise/Pattern').min(0).max(2).step(1).onChange(function (value) { });
+            var fPattern = gui3.addFolder("Pattern");
+            gui3.remember(texgen);
+            fPattern.add(texgen, "number").min(0).max(2).step(1);
+            fPattern.add(texgen, "brick_gradient").name("gradient").min(1).max(10).step(1);
+            fPattern.addColor(texgen, 'brick_color');
+            fPattern.addColor(texgen, 'grout_color');
+            fPattern.addColor(texgen, 'gradient_color');
+            fPattern.add(texgen, "width").min(1).max(256).step(1);
+            fPattern.add(texgen, "height").min(1).max(256).step(1);
+            fPattern.add(texgen, "numWidth").min(1).max(64).step(1);
+            fPattern.add(texgen, "numHeight").min(1).max(64).step(1);
+            var fShader = gui3.addFolder("Shader");
+            gui3.remember(shaderparams);
+            fShader.add(shaderparams, 'stepx').min(0.001).max(0.01).step(0.001);
+            fShader.add(shaderparams, 'stepy').min(0.001).max(0.01).step(0.001);
+            fShader.add(shaderparams, 'invR').onChange(function (value) { shaderparams.iR = value ? -1.0 : 1.0 })
+            fShader.add(shaderparams, 'invG').onChange(function (value) { shaderparams.iG = value ? -1.0 : 1.0 })
+            fShader.add(shaderparams, 'balance').min(0.0).max(1.0).step(0.1)
+            fShader.add(shaderparams, 'invH').onChange(function (value) { shaderparams.iH = value ? -1.0 : 1.0 })
+            fShader.add(shaderparams, 'filter').name("Sobel/Scharr").onChange(function (value) { shaderparams.fSobel = value ? 1.0 : 0.0 })
+            fShader.add(shaderparams, 'level').min(4).max(10).step(.1).onChange(function (v) { shaderparams.filterdz = 1.0 / shaderparams.strength * (1.0 + Math.pow(2.0, v)); console.log(shaderparams.filterdz + " " + shaderparams.strength); });
+            fShader.add(shaderparams, 'strength').min(.005).max(2).step(.005).onChange(function (v) { shaderparams.filterdz = 1.0 / v * (1.0 + Math.pow(2.0, shaderparams.level)); console.log(shaderparams.filterdz); });
+            shaderparams.filterdz = 1.0 / shaderparams.strength * (1.0 + Math.pow(2.0, shaderparams.level));
+
+
+
+
+
+
+
+            var perlinPars = { color1: "#e6d7c3", color2: "#1a1714", octaves: 6, persistence: .9, scale: 50, seed: 1, percentage: .9 }
+            noisegen.setPerlinNoise(dynCtx, {});
+            //
+            //var gui2 = new dat.GUI({ load: presets });
+            var fNoise = gui3.addFolder("Noise");
+            gui3.remember(noisegen);
+            //gui2.remember(noisegen);
+            fNoise.addColor(noisegen, 'color1');
+            fNoise.addColor(noisegen, 'color2');
+            fNoise.add(noisegen, 'octaves').min(1).max(20).step(1);
+            fNoise.add(noisegen, 'persistence').min(.1).max(.9).step(.1);
+            fNoise.add(noisegen, 'scale').min(1).max(500).step(.01);
+            fNoise.add(noisegen, 'seed').min(1).max(12).step(1);
+            fNoise.add(noisegen, 'percentage').min(.01).max(1.9).step(.01);
+            fNoise.add(noisegen, 'type').name("Perlin/Fractal/Turbulence").min(0).max(2).step(1);
+            //var rc=genClones();
+            //createPattern(dynCtx, { brick_gradient: 1 });
+            //setPerlinNoise(canvas, size, color1, color2, type, octaves, persistence, scale, seed, percentage) 
+
+
+            scene.registerBeforeRender(() => {
+                frame++;
+                //sphere.rotation.y += 0.02;
+                //rc.root.rotation.y += .01;
+                new BABYLONX.ShaderMaterialHelper().SetUniforms(
+                      scene.meshes,
+                      camera.position,
+                      camera.target,
+                       { x: 0, y: 0 },
+                       { x: 100, y: 100 },
+                  frame);
+                /*
+                    dynCtx.fillText("Hello World", 10, 50);
+                    dynCtx.fillRect(100, 100, 150, 100);
+                    //dummy for update context ??
+                    */
+                dynTex.update();//drawText("x", 5, 40, "bold 48px Arial", "green", "transparent", true);
+                dynTexPattern.update();
+                function updateShaderUniforms(mesh) {
+                    if (source.input == 0) {
+                        mesh.material.setTexture('dyTxt', staticTex);
+                    } else if (source.input == 2) {
+                        mesh.material.setTexture('dyTxt', dynTexPattern);
+                    } else {
+                        mesh.material.setTexture('dyTxt', dynTex);
+                    }
+                    mesh.material.setFloat('stepx', shaderparams.stepx);
+                    mesh.material.setFloat('stepy', shaderparams.stepy);
+                    mesh.material.setFloat('invR', shaderparams.iR);
+                    mesh.material.setFloat('invG', shaderparams.iG);
+                    mesh.material.setFloat('balance', shaderparams.balance);
+                    mesh.material.setFloat('invH', shaderparams.iH);
+                    mesh.material.setFloat('fSobel', shaderparams.fSobel);
+                    mesh.material.setFloat('filterdz', shaderparams.filterdz);
+                    mesh.material.setFloat('time', frame * .001);
+                }
+                updateShaderUniforms(box);
+                updateShaderUniforms(sph);
+                updateShaderUniforms(gnd);
+                //updateShaderUniforms(meshes[0]);
+                //meshes[0].material.setTexture('dyTxt', wtex);
+
+
+            });
+
+
+        }
+
+        loader.load();
+        //var cube1 = demo.createCube({ w: 5, h: 5, d: 5 }, "#DCDCDC");
+        var frame = 0;
+          
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+    </script>
+</body>
+
+
+
+</html>
